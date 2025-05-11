@@ -32,3 +32,5 @@ Thumbs.db
 # Arquivos de dependência (se for usar requirements.txt ou pipenv)
 Pipfile.lock
 poetry.lock
+firebase_credentials.json
+

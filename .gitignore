@@ -1,0 +1,34 @@
+# Arquivos e pastas do Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Ambientes virtuais
+env/
+venv/
+ENV/
+.venv/
+.ENV/
+
+# Configurações do VSCode e outros editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos temporários
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos do Jupyter Notebook
+.ipynb_checkpoints/
+
+# Arquivos de dependência (se for usar requirements.txt ou pipenv)
+Pipfile.lock
+poetry.lock

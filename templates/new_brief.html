@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Novo Brief') }} - EazyBrief{% endblock %}
+{% block page_title %}{{ _('Novo Brief') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .input-section { display: none; }
+    .input-section.active { display: block; }
+    .input-type-btn.active { background: #eef2ff; border-color: #6366f1; color: #3730a3; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="bg-gradient-to-br from-indigo-50 to-white rounded-2xl shadow-xl p-8 mb-8 border border-indigo-100 animate-fade-in">
+    <!-- Etapas e template -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div class="flex items-center space-x-3 mb-4 md:mb-0">
+  <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">
+    <i class="fas fa-robot mr-1"></i> Modelo:
+    <select id="model-select" class="ml-2 bg-transparent border-none focus:ring-0 text-indigo-700">
+      <option value="groq">Groq (Llama)</option>
+      <option value="gemini">Gemini (Google)</option>
+    </select>
+  </span>
+        <span class="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold"><i class="fas fa-rocket mr-1"></i> {{ _('Passo 1') }}</span>
+        <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold"><i class="fas fa-palette mr-1"></i> {{ _('Template:') }} <select id="brief-template" class="ml-2 bg-transparent border-none focus:ring-0 text-indigo-700">
+          <option value="classic">{{ _('Clássico') }}</option>
+          <option value="visual">{{ _('Visual') }}</option>
+          <option value="minimal">{{ _('Minimalista') }}</option>
+        </select></span>
+      </div>
+      <button id="add-extra-field" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-md shadow-sm hover:bg-indigo-50 transition"><i class="fas fa-plus mr-2"></i>{{ _('Adicionar Campo Extra') }}</button>
+    </div>
+    <form id="brief-form" autocomplete="off">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Input Type Selector -->
+        <div class="bg-indigo-50 p-4 rounded-xl shadow flex flex-col items-stretch">
+          <h3 class="font-semibold mb-3 text-indigo-700">{{ _('Tipo de Entrada') }}</h3>
+          <div class="space-y-2">
+            <button type="button" data-input-type="text" class="input-type-btn w-full text-left p-3 rounded-lg border border-indigo-200 active transition"><i class="fas fa-font mr-2"></i> {{ _('Texto') }}</button>
+            <button type="button" data-input-type="audio" class="input-type-btn w-full text-left p-3 rounded-lg border border-indigo-200 transition"><i class="fas fa-microphone mr-2"></i> {{ _('Áudio') }}</button>
+            <button type="button" data-input-type="image" class="input-type-btn w-full text-left p-3 rounded-lg border border-indigo-200 transition"><i class="fas fa-image mr-2"></i> {{ _('Imagem') }}</button>
+          </div>
+        </div>
+        <div class="md:col-span-2">
+          <div id="text-input" class="input-section active">
+            <label for="brief-text" class="block text-sm font-medium text-gray-700 mb-2">{{ _('Cole o texto do briefing') }}</label>
+            <textarea id="brief-text" rows="6" class="w-full p-3 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"></textarea>
+          </div>
+          <div id="audio-input" class="input-section">
+            <div class="border-2 border-dashed border-indigo-200 rounded-lg p-8 text-center">
+              <i class="fas fa-microphone text-4xl text-indigo-400 mb-4"></i>
+              <p class="mb-4">{{ _('Grave um áudio ou faça upload de um arquivo') }}</p>
+              <div class="flex justify-center space-x-4">
+                <button id="recordBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"><i class="fas fa-microphone mr-2"></i>{{ _('Gravar') }}</button>
+                <button id="uploadAudioBtn" class="px-4 py-2 bg-white border border-indigo-200 rounded-md hover:bg-indigo-50"><i class="fas fa-upload mr-2"></i>{{ _('Enviar') }}</button>
+              </div>
+              <input type="file" id="audioFile" accept="audio/*" class="hidden">
+            </div>
+            <div id="audioPreview" class="mt-4 hidden">
+              <audio controls class="w-full"></audio>
+              <button id="removeAudio" class="mt-2 text-red-600 text-sm"><i class="fas fa-trash mr-1"></i>{{ _('Remover áudio') }}</button>
+            </div>
+          </div>
+          <div id="image-input" class="input-section">
+            <div class="border-2 border-dashed border-indigo-200 rounded-lg p-8 text-center">
+              <i class="fas fa-image text-4xl text-indigo-400 mb-4"></i>
+              <p class="mb-4">{{ _('Arraste e solte uma imagem ou clique para selecionar') }}</p>
+              <input type="file" id="imageFile" accept="image/*" class="hidden">
+              <button id="uploadImageBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"><i class="fas fa-upload mr-2"></i>{{ _('Selecionar Imagem') }}</button>
+            </div>
+            <div id="imagePreview" class="hidden mt-2">
+              <div class="flex items-center space-x-3 bg-white border-2 border-indigo-200 rounded-xl p-3 shadow-lg">
+                <img src="" alt="Preview" class="max-h-32 rounded-xl shadow-lg border-2 border-indigo-300" id="imagePreviewImg" />
+                <div class="flex flex-col">
+                  <span id="imagePreviewName" class="text-xs text-gray-600"></span>
+                  <button type="button" id="removeImage" class="mt-2 text-red-500 hover:text-red-700"><i class="fas fa-times"></i> {{ _('Remover Imagem') }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Campos extras dinâmicos -->
+      <div id="extra-fields" class="mt-8 space-y-4"></div>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="brief-type" class="block text-sm font-medium text-gray-700 mb-2">{{ _('Tipo de Briefing') }}</label>
+          <select id="brief-type" class="w-full p-3 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition">
+            <option value="design">{{ _('Design Gráfico') }}</option>
+            <option value="marketing">{{ _('Marketing Digital') }}</option>
+            <option value="development">{{ _('Desenvolvimento Web') }}</option>
+            <option value="social">{{ _('Mídias Sociais') }}</option>
+            <option value="video">{{ _('Produção de Vídeo') }}</option>
+            <option value="custom">{{ _('Personalizado') }}</option>
+          </select>
+        </div>
+        <div class="flex items-end justify-end space-x-4">
+          <button id="generateBtn" type="button" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 shadow transition"><i class="fas fa-magic mr-2"></i>{{ _('Gerar Briefing') }}</button>
+          <button id="clearBtn" type="button" class="px-6 py-3 border border-indigo-200 text-indigo-700 bg-white rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 shadow transition"><i class="fas fa-eraser mr-2"></i>{{ _('Limpar') }}</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div id="result-section" class="hidden animate-fade-in">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-indigo-800">Briefing Gerado</h2>
+      <div class="flex space-x-2">
+        <button id="copyBtn" class="p-2 text-indigo-400 hover:text-indigo-700" title="Copiar"><i class="far fa-copy"></i></button>
+        <button id="downloadPdfBtn" class="p-2 text-indigo-400 hover:text-indigo-700" title="Baixar PDF"><i class="far fa-file-pdf"></i></button>
+        <button id="downloadDocxBtn" class="p-2 text-indigo-400 hover:text-indigo-700" title="Baixar DOCX"><i class="far fa-file-word"></i></button>
+        <button id="shareWhatsappBtn" class="p-2 text-indigo-400 hover:text-indigo-700" title="Compartilhar no WhatsApp"><i class="fab fa-whatsapp"></i></button>
+      </div>
+    </div>
+    <div id="brief-result" class="prose prose-indigo max-w-none bg-gray-50 rounded-lg shadow-lg p-8 border border-indigo-100 text-gray-900 text-base leading-relaxed"></div>
+<div id="brief-actions" class="hidden mt-4 flex gap-4">
+    <button id="saveBriefBtn" class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400 shadow transition"><i class="fas fa-save mr-2"></i>Salvar Brief</button>
+    <button id="editBriefBtn" class="px-6 py-3 border border-indigo-200 text-indigo-700 bg-white rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 shadow transition"><i class="fas fa-edit mr-2"></i>Editar</button>
+    <button id="cancelBriefBtn" class="px-6 py-3 border border-red-200 text-red-700 bg-white rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 shadow transition"><i class="fas fa-times mr-2"></i>Cancelar</button>
+</div>
+<div id="brief-hint" class="hidden mt-2 text-sm text-gray-500">Revise e edite seu briefing antes de salvar. Se não gostou, clique em editar ou cancelar.</div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Biblioteca Marked para renderizar markdown no preview -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+// Função para mostrar preview markdown e botões de ação
+function showBriefPreview(markdownText) {
+    const html = marked.parse(markdownText || '');
+    document.getElementById('brief-result').innerHTML = html;
+    document.getElementById('result-section').classList.remove('hidden');
+    document.getElementById('brief-actions').classList.remove('hidden');
+    document.getElementById('brief-hint').classList.remove('hidden');
+    document.getElementById('brief-form').style.display = 'none';
+}
+// Voltar para edição
+function editBrief() {
+    document.getElementById('result-section').classList.add('hidden');
+    document.getElementById('brief-actions').classList.add('hidden');
+    document.getElementById('brief-hint').classList.add('hidden');
+    document.getElementById('brief-form').style.display = '';
+}
+// Cancelar (limpa tudo)
+function cancelBrief() {
+    editBrief();
+    document.getElementById('brief-text').value = '';
+    document.getElementById('brief-result').innerHTML = '';
+}
+// Salvar (envia formulário)
+function saveBrief() {
+    // Aqui pode-se submeter via AJAX ou simplesmente submit
+    document.getElementById('brief-form').submit();
+}
+// Eventos dos botões
+window.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('generateBtn');
+    if (generateBtn) {
+        generateBtn.onclick = async function() {
+                // --- INTEGRAÇÃO COM IA (AJAX) ---
+                const briefText = document.getElementById('brief-text').value;
+                const briefType = document.getElementById('brief-type').value;
+                const template = document.getElementById('brief-template').value;
+                // Coletar campos extras
+                const extraFields = Array.from(document.querySelectorAll('#extra-fields > div')).map(div => {
+                    const name = div.querySelector('.extra-field-name').value.trim();
+                    const value = div.querySelector('.extra-field-value').value.trim();
+                    return name && value ? { name, value } : null;
+                }).filter(Boolean);
+
+                // Detectar tipo de entrada ativa
+                const activeTypeBtn = document.querySelector('.input-type-btn.active');
+                const inputType = activeTypeBtn ? activeTypeBtn.getAttribute('data-input-type') : 'text';
+                const model = document.getElementById('model-select') ? document.getElementById('model-select').value : 'groq';
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Gerando...';
+                try {
+                    let response;
+                    if (inputType === 'audio') {
+                        const audioFileInput = document.getElementById('audioFile');
+                        const audioFile = audioFileInput && audioFileInput.files.length > 0 ? audioFileInput.files[0] : null;
+                        if (!audioFile) throw new Error('Selecione um arquivo de áudio.');
+                        const formData = new FormData();
+                        formData.append('audio', audioFile);
+                        formData.append('type', briefType);
+                        formData.append('template', template);
+                        formData.append('extras', JSON.stringify(extraFields));
+                        formData.append('model', model);
+                        response = await fetch('/api/generate-brief', {
+                            method: 'POST',
+                            body: formData
+                        });
+                    } else if (inputType === 'image') {
+                        const imageFileInput = document.getElementById('imageFile');
+                        const imageFile = imageFileInput && imageFileInput.files.length > 0 ? imageFileInput.files[0] : null;
+                        if (!imageFile) throw new Error('Selecione uma imagem.');
+                        // Converter imagem para dataURL
+                        const toDataUrl = file => new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+                        const imageDataUrl = await toDataUrl(imageFile);
+                        const payload = {
+                            image: imageDataUrl,
+                            type: briefType,
+                            template: template,
+                            extras: extraFields,
+                            model: model
+                        };
+                        response = await fetch('/api/generate-brief', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } else {
+                        // Texto
+                        response = await fetch('/api/generate-brief', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                text: briefText,
+                                type: briefType,
+                                template: template,
+                                extras: extraFields,
+                                model: model
+                            })
+                        });
+                    }
+                const data = await response.json();
+                if (data.result) {
+                    document.getElementById('brief-text').value = data.result;
+                    showBriefPreview(data.result);
+                } else {
+                    document.getElementById('brief-result').innerHTML = `<span class='text-red-600'>Erro: ${data.error || 'Falha ao gerar briefing.'}</span>`;
+                    document.getElementById('result-section').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('brief-result').innerHTML = `<span class='text-red-600'>Erro de conexão com o servidor.</span>`;
+                document.getElementById('result-section').classList.remove('hidden');
+            }
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Gerar Briefing';
+        };
+    }
+    const editBtn = document.getElementById('editBriefBtn');
+    if (editBtn) editBtn.onclick = editBrief;
+    const cancelBtn = document.getElementById('cancelBriefBtn');
+    if (cancelBtn) cancelBtn.onclick = cancelBrief;
+    const saveBtn = document.getElementById('saveBriefBtn');
+    if (saveBtn) saveBtn.onclick = saveBrief;
+});
+</script>
+
+<script>
+    // Alternar tipos de entrada
+    document.querySelectorAll('.input-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.input-type-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.input-section').forEach(section => section.classList.remove('active'));
+            this.classList.add('active');
+            const inputType = this.getAttribute('data-input-type');
+            document.getElementById(`${inputType}-input`).classList.add('active');
+        });
+    });
+    // Upload e preview de imagem
+    document.getElementById('uploadImageBtn').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('imageFile').click();
+    };
+    document.getElementById('imageFile').onchange = function(e) {
+        e.preventDefault();
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreviewImg').src = e.target.result;
+                document.getElementById('imagePreview').classList.remove('hidden');
+                document.getElementById('imagePreviewName').textContent = file.name;
+            }
+            reader.readAsDataURL(file);
+        }
+    };
+    document.getElementById('removeImage').onclick = function() {
+        document.getElementById('imageFile').value = '';
+        document.getElementById('imagePreviewImg').src = '';
+        document.getElementById('imagePreview').classList.add('hidden');
+        document.getElementById('imagePreviewName').textContent = '';
+    };
+    document.getElementById('removeImage').onclick = function() {
+        document.getElementById('imageFile').value = '';
+        document.querySelector('#imagePreview img').src = '';
+        document.getElementById('imagePreview').classList.add('hidden');
+    };
+    // Upload e preview de áudio
+    document.getElementById('uploadAudioBtn').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('audioFile').click();
+    };
+    document.getElementById('audioFile').onchange = function(e) {
+        e.preventDefault();
+        const file = e.target.files[0];
+        if (file) {
+            document.querySelector('#audioPreview audio').src = URL.createObjectURL(file);
+            document.getElementById('audioPreview').classList.remove('hidden');
+        }
+    };
+    document.getElementById('removeAudio').onclick = function() {
+        document.getElementById('audioFile').value = '';
+        document.querySelector('#audioPreview audio').src = '';
+        document.getElementById('audioPreview').classList.add('hidden');
+    };
+
+    // Campos extras dinâmicos
+    let extraFieldId = 0;
+    document.getElementById('add-extra-field').onclick = function() {
+        extraFieldId++;
+        const container = document.createElement('div');
+        container.className = 'flex space-x-2 items-center fade-in';
+        container.id = `extra-field-${extraFieldId}`;
+        container.innerHTML = `
+            <input type="text" placeholder="Nome do campo (ex: Data de Entrega)" class="extra-field-name p-2 border border-indigo-200 rounded-lg w-1/3 focus:ring-2 focus:ring-indigo-400" />
+            <input type="text" placeholder="Valor" class="extra-field-value p-2 border border-indigo-200 rounded-lg w-2/3 focus:ring-2 focus:ring-indigo-400" />
+            <button type="button" class="remove-extra-field text-red-500 hover:text-red-700 text-lg" title="Remover"><i class="fas fa-times"></i></button>
+        `;
+        document.getElementById('extra-fields').appendChild(container);
+        container.querySelector('.remove-extra-field').onclick = function() {
+            container.remove();
+        };
+    };
+
+    // Limpar formulário
+    document.getElementById('clearBtn').onclick = function() {
+        document.querySelectorAll('textarea').forEach(input => input.value = '');
+        document.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
+        document.getElementById('result-section').classList.add('hidden');
+        document.getElementById('extra-fields').innerHTML = '';
+    };
+
+    // Integração real com IA Groq (agora com imagem)
+    document.getElementById('generateBtn').onclick = async function() {
+        const briefText = document.getElementById('brief-text').value;
+        const briefType = document.getElementById('brief-type').value;
+        const template = document.getElementById('brief-template').value;
+        // Coletar campos extras
+        const extraFields = Array.from(document.querySelectorAll('#extra-fields > div')).map(div => {
+            const name = div.querySelector('.extra-field-name').value.trim();
+            const value = div.querySelector('.extra-field-value').value.trim();
+            return name && value ? { name, value } : null;
+        }).filter(Boolean);
+        // Coletar imagem se houver
+        let imageDataUrl = '';
+        const imageInput = document.getElementById('imageFile');
+        if (imageInput.files && imageInput.files[0]) {
+            imageDataUrl = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(imageInput.files[0]);
+            });
+        }
+        // Coletar áudio se houver
+        const audioInput = document.getElementById('audioFile');
+        let audioFile = null;
+        if (audioInput && audioInput.files && audioInput.files[0]) {
+            audioFile = audioInput.files[0];
+        }
+        if (!briefText && !imageDataUrl && !audioFile) {
+            alert('Por favor, insira um texto, imagem ou áudio para gerar o briefing.');
+            return;
+        }
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Gerando...';
+        document.getElementById('brief-result').innerHTML = '';
+        document.getElementById('result-section').classList.add('hidden');
+        // Log visual se imagem ou áudio está sendo enviado
+        let imageNotice = document.getElementById('image-upload-notice');
+        if (!imageNotice) {
+            imageNotice = document.createElement('div');
+            imageNotice.id = 'image-upload-notice';
+            imageNotice.className = 'mb-4 text-sm text-indigo-700 bg-indigo-100 px-3 py-2 rounded-lg flex items-center';
+            document.getElementById('generateBtn').parentElement.insertBefore(imageNotice, document.getElementById('generateBtn'));
+        }
+        if (imageDataUrl && audioFile) {
+            imageNotice.innerHTML = '<i class="fas fa-image mr-2"></i>Imagem e <i class="fas fa-microphone mr-2"></i>Áudio serão enviados para análise da IA.';
+        } else if (imageDataUrl) {
+            imageNotice.innerHTML = '<i class="fas fa-image mr-2"></i>Imagem será enviada para análise da IA.';
+        } else if (audioFile) {
+            imageNotice.innerHTML = '<i class="fas fa-microphone mr-2"></i>Áudio será enviado para transcrição.';
+        } else {
+            imageNotice.innerHTML = '';
+        }
+        // Log para desenvolvedor
+        console.log('Enviando para IA:', {text: briefText, type: briefType, template, extras: extraFields, image: imageDataUrl ? '[SIM]' : '[NÃO]', audio: audioFile ? '[SIM]' : '[NÃO]'});
+        // Montar FormData se houver áudio
+        let fetchOptions;
+        if (audioFile) {
+            const formData = new FormData();
+            formData.append('audio', audioFile);
+            formData.append('text', briefText);
+            formData.append('type', briefType);
+            formData.append('template', template);
+            formData.append('extras', JSON.stringify(extraFields));
+            formData.append('image', imageDataUrl);
+            fetchOptions = {
+                method: 'POST',
+                body: formData
+            };
+        } else {
+            fetchOptions = {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: briefText, type: briefType, template, extras: extraFields, image: imageDataUrl})
+            };
+        }
+        try {
+            const response = await fetch('/api/generate-brief', fetchOptions);
+            const data = await response.json();
+            if (data.result) {
+                document.getElementById('brief-result').innerHTML = `<h3 class='text-xl font-semibold mb-4'>Briefing de ${document.querySelector(`#brief-type option[value="${briefType}"]`).textContent}</h3>` + data.html;
+                document.getElementById('result-section').classList.remove('hidden');
+                document.getElementById('result-section').scrollIntoView({behavior:'smooth'});
+            } else {
+                document.getElementById('brief-result').innerHTML = `<span class='text-red-600'>Erro: ${data.error || 'Falha ao gerar briefing.'}</span>`;
+                document.getElementById('result-section').classList.remove('hidden');
+            }
+        } catch (err) {
+            document.getElementById('brief-result').innerHTML = `<span class='text-red-600'>Erro de conexão com o servidor.</span>`;
+            document.getElementById('result-section').classList.remove('hidden');
+        }
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-magic mr-2"></i>Gerar Briefing';
+    };
+
+    // Copiar resultado
+    document.getElementById('copyBtn').onclick = function() {
+        const el = document.getElementById('brief-result');
+        const range = document.createRange();
+        range.selectNode(el);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        this.innerHTML = '<i class="fas fa-check mr-1"></i>Copiado!';
+        setTimeout(()=>{this.innerHTML='<i class="far fa-copy"></i>';},1500);
+    };
+    // Exportar PDF/DOCX/WhatsApp (simulação)
+    document.getElementById('downloadPdfBtn').onclick = function() { alert('Exportar para PDF em breve!'); };
+    document.getElementById('downloadDocxBtn').onclick = function() { alert('Exportar para DOCX em breve!'); };
+    document.getElementById('shareWhatsappBtn').onclick = function() {
+        const text = encodeURIComponent(document.getElementById('brief-result').innerText);
+        window.open(`https://wa.me/?text=${text}`,'_blank');
+    };
+</script>
+{% endblock %}

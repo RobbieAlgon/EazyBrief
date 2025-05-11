@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Login') }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .login-container h2 {
+            margin-bottom: 20px;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #1877f2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-container button:hover {
+            background-color: #165db7;
+        }
+        .google-btn {
+            background-color: #4285F4;
+            margin-top: 10px;
+        }
+        .google-btn:hover {
+            background-color: #3578e5;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-messages .alert {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .flash-messages .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .flash-messages .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .flash-messages .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .flash-messages .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .resend-link {
+            display: block;
+            margin-top: 10px;
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .signup-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>{{ _('Login') }}</h2>
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="email" name="email" placeholder="{{ _('Email') }}" value="{{ email if email else '' }}" required>
+            <input type="password" name="password" placeholder="{{ _('Senha') }}" required>
+            <button type="submit">{{ _('Entrar') }}</button>
+            {% if show_resend_button %}
+                <a href="#" class="resend-link">{{ _('Reenviar e-mail de verificação') }}</a>
+                <input type="hidden" id="resend-verification" name="resend_verification" value="false">
+            {% endif %}
+        </form>
+        <button type="button" id="googleLoginBtn" class="google-btn">{{ _('Entrar com Google') }}</button>
+        <a href="{{ url_for('signup') }}" class="signup-link">{{ _('Não tem uma conta? Cadastre-se') }}</a>
+        <a href="{{ url_for('reset_password') }}" class="signup-link">{{ _('Esqueceu sua senha?') }}</a>
+    </div>
+
+    <script type="module">
+        // Importa os módulos do Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoXb68C_gGm33Ni29UohqHy84IpJHZ-Yc",
+            authDomain: "brief-generator-5c33f.firebaseapp.com",
+            projectId: "brief-generator-5c33f",
+            storageBucket: "brief-generator-5c33f.firebasestorage.app",
+            messagingSenderId: "810916567820",
+            appId: "1:810916567820:web:9f28505921b3d75f7b4729"
+        };
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Função para login com Google
+        window.signInWithGoogle = function() {
+            const provider = new GoogleAuthProvider();
+            provider.addScope('email profile');
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    // Envia o idToken para o backend
+                    user.getIdToken().then(idToken => {
+                        fetch('/google/callback', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ idToken })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/dashboard';
+                            } else {
+                                alert('Erro ao autenticar com Google: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            alert('Erro ao comunicar com o servidor.');
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.error('Erro no login com Google:', error);
+                    alert('Erro ao autenticar com Google: ' + error.message);
+                });
+        };
+    document.getElementById('googleLoginBtn').onclick = window.signInWithGoogle;
+</script>
+</body>
+</html>

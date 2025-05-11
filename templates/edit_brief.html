@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Editar Brief') }} - EazyBrief{% endblock %}
+
+{% block page_title %}{{ _('Editar Brief') }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 bg-white rounded-lg shadow p-8">
+    {% if brief %}
+    <form method="POST">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Título/Tipo') }}</label>
+            <input type="text" name="brief_type" class="form-input w-full" value="{{ brief.brief_type }}" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Template') }}</label>
+            <input type="text" name="template" class="form-input w-full" value="{{ brief.template }}" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Texto Original') }}</label>
+            <textarea name="text" class="form-textarea w-full" rows="4" required>{{ brief.text }}</textarea>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Briefing Gerado') }}</label>
+            <textarea name="result" class="form-textarea w-full" rows="8" required>{{ brief.result }}</textarea>
+        </div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">{{ _('Salvar Alterações') }}</button>
+        <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="ml-4 text-gray-600 hover:text-indigo-600">{{ _('Cancelar') }}</a>
+    </form>
+    {% else %}
+        <div class="text-gray-500">{{ _('Brief não encontrado.') }}</div>
+    {% endif %}
+</div>
+{% endblock %}

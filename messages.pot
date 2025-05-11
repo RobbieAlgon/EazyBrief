@@ -1,0 +1,872 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-05-11 13:41+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: templates/base.html:18
+msgid "BriefGen"
+msgstr ""
+
+#: templates/base.html:23 templates/dashboard.html:3 templates/dashboard.html:5
+msgid "Dashboard"
+msgstr ""
+
+#: templates/base.html:27 templates/dashboard.html:141
+#: templates/new_brief.html:3 templates/new_brief.html:4
+msgid "Novo Brief"
+msgstr ""
+
+#: templates/base.html:31 templates/my_briefs.html:3 templates/my_briefs.html:5
+msgid "Meus Briefs"
+msgstr ""
+
+#: templates/base.html:35
+msgid "Configurações"
+msgstr ""
+
+#: templates/base.html:63
+msgid "Usuário"
+msgstr ""
+
+#: templates/base.html:69 templates/profile.html:3 templates/profile.html:5
+msgid "Meu Perfil"
+msgstr ""
+
+#: templates/base.html:70
+msgid "Sair"
+msgstr ""
+
+#: templates/dashboard.html:24
+msgid "Total de Briefs"
+msgstr ""
+
+#: templates/dashboard.html:44
+msgid "Concluídos"
+msgstr ""
+
+#: templates/dashboard.html:64
+msgid "Em Andamento"
+msgstr ""
+
+#: templates/dashboard.html:75
+msgid "Meus Briefs Recentes"
+msgstr ""
+
+#: templates/dashboard.html:94 templates/my_briefs.html:24
+msgid "Criado em"
+msgstr ""
+
+#: templates/dashboard.html:103
+msgid "Concluído"
+msgstr ""
+
+#: templates/dashboard.html:113 templates/my_briefs.html:34
+msgid "Nenhum brief encontrado."
+msgstr ""
+
+#: templates/dashboard.html:120
+msgid "Ver todos os briefs"
+msgstr ""
+
+#: templates/dashboard.html:133
+msgid "Criar Novo Brief"
+msgstr ""
+
+#: templates/dashboard.html:135
+msgid "Comece um novo brief do zero ou use um dos nossos modelos."
+msgstr ""
+
+#: templates/dashboard.html:150
+msgid "Modelos Salvos"
+msgstr ""
+
+#: templates/dashboard.html:152
+msgid "Use um dos seus modelos salvos para começar mais rápido."
+msgstr ""
+
+#: templates/dashboard.html:158
+msgid "Ver Modelos"
+msgstr ""
+
+#: templates/edit_brief.html:3 templates/edit_brief.html:5
+msgid "Editar Brief"
+msgstr ""
+
+#: templates/edit_brief.html:12
+msgid "Título/Tipo"
+msgstr ""
+
+#: templates/edit_brief.html:16
+msgid "Template"
+msgstr ""
+
+#: templates/edit_brief.html:20
+msgid "Texto Original"
+msgstr ""
+
+#: templates/edit_brief.html:24
+msgid "Briefing Gerado"
+msgstr ""
+
+#: templates/edit_brief.html:27 templates/profile.html:77
+msgid "Salvar Alterações"
+msgstr ""
+
+#: templates/edit_brief.html:28
+msgid "Cancelar"
+msgstr ""
+
+#: templates/edit_brief.html:31 templates/view_brief.html:45
+msgid "Brief não encontrado."
+msgstr ""
+
+#: templates/index.html:2
+msgid "Brief Generator Pro - Plataforma de Briefings Inteligentes"
+msgstr ""
+
+#: templates/index.html:8 templates/index.html:22
+msgid "Brief Generator Pro"
+msgstr ""
+
+#: templates/index.html:9
+msgid ""
+"A plataforma inteligente para criar briefings profissionais, rápidos e "
+"personalizados com auxílio de IA. Gere briefs a partir de texto, áudio ou"
+" imagem e otimize seu fluxo criativo!"
+msgstr ""
+
+#: templates/index.html:11
+msgid "Geração automática de briefings com IA"
+msgstr ""
+
+#: templates/index.html:12
+msgid "Suporte a texto, imagem e áudio"
+msgstr ""
+
+#: templates/index.html:13
+msgid "Templates visuais e campos customizáveis"
+msgstr ""
+
+#: templates/index.html:14
+msgid "Seguro, rápido e fácil de usar"
+msgstr ""
+
+#: templates/index.html:17
+msgid "Iniciar Sessão"
+msgstr ""
+
+#: templates/index.html:18
+msgid "Cadastrar-se"
+msgstr ""
+
+#: templates/login.html:6 templates/login.html:100
+msgid "Login"
+msgstr ""
+
+#: templates/login.html:111 templates/profile.html:56
+msgid "Email"
+msgstr ""
+
+#: templates/login.html:112
+msgid "Senha"
+msgstr ""
+
+#: templates/login.html:113
+msgid "Entrar"
+msgstr ""
+
+#: templates/login.html:115
+msgid "Reenviar e-mail de verificação"
+msgstr ""
+
+#: templates/login.html:119
+msgid "Entrar com Google"
+msgstr ""
+
+#: templates/login.html:120
+msgid "Não tem uma conta? Cadastre-se"
+msgstr ""
+
+#: templates/login.html:121
+msgid "Esqueceu sua senha?"
+msgstr ""
+
+#: templates/my_briefs.html:11
+msgid "Todos os meus briefs"
+msgstr ""
+
+#: templates/my_briefs.html:12
+msgid "Total:"
+msgstr ""
+
+#: templates/my_briefs.html:28
+msgid "Visualizar"
+msgstr ""
+
+#: templates/new_brief.html:20
+msgid "Passo 1"
+msgstr ""
+
+#: templates/new_brief.html:21
+msgid "Template:"
+msgstr ""
+
+#: templates/new_brief.html:22
+msgid "Clássico"
+msgstr ""
+
+#: templates/new_brief.html:23
+msgid "Visual"
+msgstr ""
+
+#: templates/new_brief.html:24
+msgid "Minimalista"
+msgstr ""
+
+#: templates/new_brief.html:27
+msgid "Adicionar Campo Extra"
+msgstr ""
+
+#: templates/new_brief.html:33
+msgid "Tipo de Entrada"
+msgstr ""
+
+#: templates/new_brief.html:35
+msgid "Texto"
+msgstr ""
+
+#: templates/new_brief.html:36
+msgid "Áudio"
+msgstr ""
+
+#: templates/new_brief.html:37
+msgid "Imagem"
+msgstr ""
+
+#: templates/new_brief.html:42
+msgid "Cole o texto do briefing"
+msgstr ""
+
+#: templates/new_brief.html:48
+msgid "Grave um áudio ou faça upload de um arquivo"
+msgstr ""
+
+#: templates/new_brief.html:50
+msgid "Gravar"
+msgstr ""
+
+#: templates/new_brief.html:51
+msgid "Enviar"
+msgstr ""
+
+#: templates/new_brief.html:57
+msgid "Remover áudio"
+msgstr ""
+
+#: templates/new_brief.html:63
+msgid "Arraste e solte uma imagem ou clique para selecionar"
+msgstr ""
+
+#: templates/new_brief.html:65
+msgid "Selecionar Imagem"
+msgstr ""
+
+#: templates/new_brief.html:72
+msgid "Remover Imagem"
+msgstr ""
+
+#: templates/new_brief.html:83
+msgid "Tipo de Briefing"
+msgstr ""
+
+#: templates/new_brief.html:85
+msgid "Design Gráfico"
+msgstr ""
+
+#: templates/new_brief.html:86
+msgid "Marketing Digital"
+msgstr ""
+
+#: templates/new_brief.html:87
+msgid "Desenvolvimento Web"
+msgstr ""
+
+#: templates/new_brief.html:88
+msgid "Mídias Sociais"
+msgstr ""
+
+#: templates/new_brief.html:89
+msgid "Produção de Vídeo"
+msgstr ""
+
+#: templates/new_brief.html:90
+msgid "Personalizado"
+msgstr ""
+
+#: templates/new_brief.html:94
+msgid "Gerar Briefing"
+msgstr ""
+
+#: templates/new_brief.html:95
+msgid "Limpar"
+msgstr ""
+
+#: templates/profile.html:34
+msgid "Alterar foto de perfil"
+msgstr ""
+
+#: templates/profile.html:46
+msgid "Nome"
+msgstr ""
+
+#: templates/profile.html:66
+msgid "Telefone"
+msgstr ""
+
+#: templates/view_brief.html:3 templates/view_brief.html:5
+msgid "Visualizar Brief"
+msgstr ""
+
+#: templates/view_brief.html:15
+msgid "Texto Original:"
+msgstr ""
+
+#: templates/view_brief.html:20
+msgid "Campos Adicionais:"
+msgstr ""
+
+#: templates/view_brief.html:30
+msgid "Imagem Enviada:"
+msgstr ""
+
+#: templates/view_brief.html:35
+msgid "Briefing Gerado:"
+msgstr ""
+
+#: templates/view_brief.html:39
+msgid "Editar"
+msgstr ""
+
+#: templates/view_brief.html:40
+msgid "Tem certeza que deseja excluir este brief?"
+msgstr ""
+
+#: templates/view_brief.html:41
+msgid "Excluir"
+msgstr ""
+
+#: venv/Lib/site-packages/click/_termui_impl.py:556
+#, python-brace-format
+msgid "{editor}: Editing failed"
+msgstr ""
+
+#: venv/Lib/site-packages/click/_termui_impl.py:560
+#, python-brace-format
+msgid "{editor}: Editing failed: {e}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1124
+msgid "Aborted!"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1349
+#: venv/Lib/site-packages/click/core.py:1379
+#, python-brace-format
+msgid "(Deprecated) {text}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1396
+msgid "Options"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1422
+#, python-brace-format
+msgid "Got unexpected extra argument ({args})"
+msgid_plural "Got unexpected extra arguments ({args})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/core.py:1438
+#, python-brace-format
+msgid "DeprecationWarning: The command {name!r} is deprecated."
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1645
+msgid "Commands"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1677
+msgid "Missing command."
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:1755
+#, python-brace-format
+msgid "No such command {name!r}."
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:2313
+msgid "Value must be an iterable."
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:2334
+#, python-brace-format
+msgid "Takes {nargs} values but 1 was given."
+msgid_plural "Takes {nargs} values but {len} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/core.py:2783
+#, python-brace-format
+msgid "env var: {var}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:2813
+msgid "(dynamic)"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:2828
+#, python-brace-format
+msgid "default: {default}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/core.py:2841
+msgid "required"
+msgstr ""
+
+#: venv/Lib/site-packages/click/decorators.py:457
+#, python-format
+msgid "%(prog)s, version %(version)s"
+msgstr ""
+
+#: venv/Lib/site-packages/click/decorators.py:520
+msgid "Show the version and exit."
+msgstr ""
+
+#: venv/Lib/site-packages/click/decorators.py:541
+msgid "Show this message and exit."
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:49
+#: venv/Lib/site-packages/click/exceptions.py:88
+#, python-brace-format
+msgid "Error: {message}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:80
+#, python-brace-format
+msgid "Try '{command} {option}' for help."
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:129
+#, python-brace-format
+msgid "Invalid value: {message}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:131
+#, python-brace-format
+msgid "Invalid value for {param_hint}: {message}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:187
+msgid "Missing argument"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:189
+msgid "Missing option"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:191
+msgid "Missing parameter"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:193
+#, python-brace-format
+msgid "Missing {param_type}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:200
+#, python-brace-format
+msgid "Missing parameter: {param_name}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:220
+#, python-brace-format
+msgid "No such option: {name}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:232
+#, python-brace-format
+msgid "Did you mean {possibility}?"
+msgid_plural "(Possible options: {possibilities})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/exceptions.py:270
+msgid "unknown error"
+msgstr ""
+
+#: venv/Lib/site-packages/click/exceptions.py:277
+#, python-brace-format
+msgid "Could not open file {filename!r}: {message}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/parser.py:233
+#, python-brace-format
+msgid "Argument {name!r} takes {nargs} values."
+msgstr ""
+
+#: venv/Lib/site-packages/click/parser.py:415
+#, python-brace-format
+msgid "Option {name!r} does not take a value."
+msgstr ""
+
+#: venv/Lib/site-packages/click/parser.py:476
+#, python-brace-format
+msgid "Option {name!r} requires an argument."
+msgid_plural "Option {name!r} requires {nargs} arguments."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/shell_completion.py:326
+msgid "Shell completion is not supported for Bash versions older than 4.4."
+msgstr ""
+
+#: venv/Lib/site-packages/click/shell_completion.py:333
+msgid "Couldn't detect Bash version, shell completion is not supported."
+msgstr ""
+
+#: venv/Lib/site-packages/click/termui.py:158
+msgid "Repeat for confirmation"
+msgstr ""
+
+#: venv/Lib/site-packages/click/termui.py:174
+msgid "Error: The value you entered was invalid."
+msgstr ""
+
+#: venv/Lib/site-packages/click/termui.py:176
+#, python-brace-format
+msgid "Error: {e.message}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/termui.py:187
+msgid "Error: The two entered values do not match."
+msgstr ""
+
+#: venv/Lib/site-packages/click/termui.py:243
+msgid "Error: invalid input"
+msgstr ""
+
+#: venv/Lib/site-packages/click/termui.py:773
+msgid "Press any key to continue..."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:267
+#, python-brace-format
+msgid ""
+"Choose from:\n"
+"\t{choices}"
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:299
+#, python-brace-format
+msgid "{value!r} is not {choice}."
+msgid_plural "{value!r} is not one of {choices}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/types.py:393
+#, python-brace-format
+msgid "{value!r} does not match the format {format}."
+msgid_plural "{value!r} does not match the formats {formats}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/click/types.py:415
+#, python-brace-format
+msgid "{value!r} is not a valid {number_type}."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:471
+#, python-brace-format
+msgid "{value} is not in the range {range}."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:612
+#, python-brace-format
+msgid "{value!r} is not a valid boolean."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:636
+#, python-brace-format
+msgid "{value!r} is not a valid UUID."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:826
+msgid "file"
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:828
+msgid "directory"
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:830
+msgid "path"
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:881
+#, python-brace-format
+msgid "{name} {filename!r} does not exist."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:890
+#, python-brace-format
+msgid "{name} {filename!r} is a file."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:898
+#, python-brace-format
+msgid "{name} {filename!r} is a directory."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:907
+#, python-brace-format
+msgid "{name} {filename!r} is not readable."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:916
+#, python-brace-format
+msgid "{name} {filename!r} is not writable."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:925
+#, python-brace-format
+msgid "{name} {filename!r} is not executable."
+msgstr ""
+
+#: venv/Lib/site-packages/click/types.py:992
+#, python-brace-format
+msgid "{len_type} values are required, but {len_value} was given."
+msgid_plural "{len_type} values are required, but {len_value} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/flask_wtf/file.py:55
+#: venv/Lib/site-packages/wtforms/validators.py:293
+#: venv/Lib/site-packages/wtforms/validators.py:323
+msgid "This field is required."
+msgstr ""
+
+#: venv/Lib/site-packages/flask_wtf/file.py:94
+#, python-brace-format
+msgid "File does not have an approved extension: {extensions}"
+msgstr ""
+
+#: venv/Lib/site-packages/flask_wtf/file.py:101
+msgid "File does not have an approved extension."
+msgstr ""
+
+#: venv/Lib/site-packages/httplib2/__init__.py:408
+#, python-format
+msgid "Content purported to be compressed with %s but failed to decompress."
+msgstr ""
+
+#: venv/Lib/site-packages/httplib2/__init__.py:572
+#, python-format
+msgid "Unsupported value for qop: %s."
+msgstr ""
+
+#: venv/Lib/site-packages/httplib2/__init__.py:576
+#: venv/Lib/site-packages/httplib2/__init__.py:654
+#, python-format
+msgid "Unsupported value for algorithm: %s.algorithm"
+msgstr ""
+
+#: venv/Lib/site-packages/httplib2/__init__.py:649
+msgid "The challenge doesn't contain a server nonce, or this one is empty."
+msgstr ""
+
+#: venv/Lib/site-packages/httplib2/__init__.py:659
+#, python-format
+msgid "Unsupported value for pw-algorithm: %s.pw-algorithm"
+msgstr ""
+
+#: venv/Lib/site-packages/httplib2/__init__.py:1468
+msgid "Redirected but the response is missing a Location: header."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:86
+#, python-format
+msgid "Invalid field name '%s'."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:99
+#, python-format
+msgid "Field must be equal to %(other_name)s."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:146
+#, python-format
+msgid "Field must be at least %(min)d character long."
+msgid_plural "Field must be at least %(min)d characters long."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:152
+#, python-format
+msgid "Field cannot be longer than %(max)d character."
+msgid_plural "Field cannot be longer than %(max)d characters."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:158
+#, python-format
+msgid "Field must be exactly %(max)d character long."
+msgid_plural "Field must be exactly %(max)d characters long."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:164
+#, python-format
+msgid "Field must be between %(min)d and %(max)d characters long."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:216
+#, python-format
+msgid "Number must be at least %(min)s."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:219
+#, python-format
+msgid "Number must be at most %(max)s."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:222
+#, python-format
+msgid "Number must be between %(min)s and %(max)s."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:358
+msgid "Invalid input."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:422
+msgid "Invalid email address."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:460
+msgid "Invalid IP address."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:503
+msgid "Invalid Mac address."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:540
+msgid "Invalid URL."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:561
+msgid "Invalid UUID."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:595
+#, python-format
+msgid "Invalid value, must be one of: %(values)s."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:631
+#, python-format
+msgid "Invalid value, can't be any of: %(values)s."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:700
+msgid "This field cannot be edited."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/validators.py:716
+msgid "This field is disabled and cannot have a value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/csrf/core.py:96
+msgid "Invalid CSRF Token."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/csrf/session.py:64
+msgid "CSRF token missing."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/csrf/session.py:72
+msgid "CSRF failed."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/csrf/session.py:77
+msgid "CSRF token expired."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/choices.py:142
+msgid "Invalid Choice: could not coerce."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/choices.py:149
+#: venv/Lib/site-packages/wtforms/fields/choices.py:203
+msgid "Choices cannot be None."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/choices.py:155
+msgid "Not a valid choice."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/choices.py:194
+msgid "Invalid choice(s): one or more data inputs could not be coerced."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/choices.py:212
+#, python-format
+msgid "'%(value)s' is not a valid choice for this field."
+msgid_plural "'%(value)s' are not valid choices for this field."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/Lib/site-packages/wtforms/fields/datetime.py:52
+msgid "Not a valid datetime value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/datetime.py:78
+msgid "Not a valid date value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/datetime.py:104
+msgid "Not a valid time value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/datetime.py:149
+msgid "Not a valid week value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/numeric.py:82
+#: venv/Lib/site-packages/wtforms/fields/numeric.py:92
+msgid "Not a valid integer value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/numeric.py:168
+msgid "Not a valid decimal value."
+msgstr ""
+
+#: venv/Lib/site-packages/wtforms/fields/numeric.py:197
+msgid "Not a valid float value."
+msgstr ""
+

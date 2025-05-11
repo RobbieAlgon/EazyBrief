@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Visualizar Brief') }} - EazyBrief{% endblock %}
+
+{% block page_title %}{{ _('Visualizar Brief') }}{% endblock %}
+
+{% block content %}
+    {# Dicionários para tradução dinâmica dos tipos e templates #}
+    {% set type_labels = {
+        'Design Gráfico': _('Design Gráfico'),
+        'Marketing Digital': _('Marketing Digital'),
+        'Desenvolvimento Web': _('Desenvolvimento Web'),
+        'Mídias Sociais': _('Mídias Sociais'),
+        'Produção de Vídeo': _('Produção de Vídeo'),
+        'Personalizado': _('Personalizado')
+    } %}
+    {% set template_labels = {
+        'Clássico': _('Clássico'),
+        'Visual': _('Visual'),
+        'Minimalista': _('Minimalista')
+    } %}
+    <div class="max-w-3xl mx-auto mt-8 bg-white rounded-lg shadow p-8">
+        {% if brief %}
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-900">
+                    {{ type_labels.get(brief.brief_type, brief.brief_type) }} - {{ template_labels.get(brief.template, brief.template) }}
+                </h2>
+                <span class="text-xs text-gray-500">{{ _('Criado em') }} {{ brief.created_at[:10]|replace('-', '/') }}</span>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">{{ _('Texto Original:') }}</h3>
+                <div class="bg-gray-100 rounded p-3 text-gray-700 text-sm whitespace-pre-line">{{ brief.text }}</div>
+            </div>
+            {% if brief.extras and brief.extras|length > 0 %}
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">{{ _('Campos Adicionais:') }}</h3>
+                <ul class="list-disc ml-6 text-gray-700 text-sm">
+                    {% for item in brief.extras %}
+                        <li><strong>{{ item.name }}:</strong> {{ item.value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if brief.image_data_url %}
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">{{ _('Imagem Enviada:') }}</h3>
+                <img src="{{ brief.image_data_url }}" alt="{{ _('Imagem do Brief') }}" class="max-w-xs rounded shadow">
+            </div>
+            {% endif %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800">{{ _('Briefing Gerado:') }}</h3>
+                <div class="prose prose-indigo max-w-none bg-gray-50 rounded p-4">
+    {{ brief.result | markdown }}
+</div>
+            </div>
+            <div class="flex gap-4">
+                <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">{{ _('Editar') }}</a>
+                <form method="POST"
+      action="{{ url_for('delete_brief', brief_id=brief.id) }}"
+      onsubmit="return confirm(&quot;{{ _('Tem certeza que deseja excluir este brief?') }}&quot;);">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-md shadow-sm text-red-700 bg-white hover:bg-red-50">{{ _('Excluir') }}</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="text-gray-500">{{ _('Brief não encontrado.') }}</div>
+        {% endif %}
+    </div>
+{% endblock %}

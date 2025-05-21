@@ -1984,21 +1984,21 @@ def inject_user_theme():
     
     return dict(user_theme=user_theme, user_photo=user_photo, user_plan=user_plan, plans=PLANS)
 
-# Configuração do OAuth2
-oauth2_config = {
-    "web": {
-        "client_id": os.getenv('GOOGLE_CLIENT_ID'),
-        "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "redirect_uris": [f"{request.url_root}oauth2callback"]
+def get_oauth2_config():
+    return {
+        "web": {
+            "client_id": os.getenv('GOOGLE_CLIENT_ID'),
+            "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": [f"{request.url_root}oauth2callback"]
+        }
     }
-}
 
 @app.route('/authorize')
 def authorize():
     flow = Flow.from_client_config(
-        oauth2_config,
+        get_oauth2_config(),
         scopes=['https://www.googleapis.com/auth/calendar'],
         redirect_uri=f"{request.url_root}oauth2callback"
     )
@@ -2013,7 +2013,7 @@ def authorize():
 def oauth2callback():
     state = session['state']
     flow = Flow.from_client_config(
-        oauth2_config,
+        get_oauth2_config(),
         scopes=['https://www.googleapis.com/auth/calendar'],
         redirect_uri=f"{request.url_root}oauth2callback",
         state=state

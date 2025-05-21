@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Status do Serviço - EazyBrief{% endblock %}
+
+{% block page_title %}Status do Serviço{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Status do Sistema</h2>
+            <div class="text-sm text-gray-500">
+                Última atualização: <span id="last-update">{{ last_update }}</span>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <!-- API Status -->
+            <div class="border-b border-gray-200 pb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">API Principal</h3>
+                        <p class="text-sm text-gray-500">Serviço de geração de briefs</p>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if api_status == 'operational' %}
+                                bg-green-100 text-green-800
+                            {% elif api_status == 'degraded' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {% if api_status == 'operational' %}
+                                <i class="fas fa-check-circle mr-2"></i>Operacional
+                            {% elif api_status == 'degraded' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>Degradado
+                            {% else %}
+                                <i class="fas fa-times-circle mr-2"></i>Indisponível
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Status -->
+            <div class="border-b border-gray-200 pb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Banco de Dados</h3>
+                        <p class="text-sm text-gray-500">Armazenamento de dados</p>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if db_status == 'operational' %}
+                                bg-green-100 text-green-800
+                            {% elif db_status == 'degraded' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {% if db_status == 'operational' %}
+                                <i class="fas fa-check-circle mr-2"></i>Operacional
+                            {% elif db_status == 'degraded' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>Degradado
+                            {% else %}
+                                <i class="fas fa-times-circle mr-2"></i>Indisponível
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Status -->
+            <div class="border-b border-gray-200 pb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Autenticação</h3>
+                        <p class="text-sm text-gray-500">Sistema de login e registro</p>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if auth_status == 'operational' %}
+                                bg-green-100 text-green-800
+                            {% elif auth_status == 'degraded' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {% if auth_status == 'operational' %}
+                                <i class="fas fa-check-circle mr-2"></i>Operacional
+                            {% elif auth_status == 'degraded' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>Degradado
+                            {% else %}
+                                <i class="fas fa-times-circle mr-2"></i>Indisponível
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="border-b border-gray-200 pb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Pagamentos</h3>
+                        <p class="text-sm text-gray-500">Processamento de pagamentos</p>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if payment_status == 'operational' %}
+                                bg-green-100 text-green-800
+                            {% elif payment_status == 'degraded' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {% if payment_status == 'operational' %}
+                                <i class="fas fa-check-circle mr-2"></i>Operacional
+                            {% elif payment_status == 'degraded' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>Degradado
+                            {% else %}
+                                <i class="fas fa-times-circle mr-2"></i>Indisponível
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Incident History -->
+        <div class="mt-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Histórico de Incidentes</h3>
+            <div class="space-y-4">
+                {% if incidents %}
+                    {% for incident in incidents %}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900">{{ incident.title }}</h4>
+                                <p class="text-sm text-gray-500 mt-1">{{ incident.description }}</p>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if incident.status == 'resolved' %}
+                                    bg-green-100 text-green-800
+                                {% elif incident.status == 'investigating' %}
+                                    bg-yellow-100 text-yellow-800
+                                {% else %}
+                                    bg-red-100 text-red-800
+                                {% endif %}">
+                                {{ incident.status|title }}
+                            </span>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-500">
+                            {{ incident.created_at }} - {{ incident.updated_at }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500 text-center py-4">Nenhum incidente reportado.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Atualizar status a cada 30 segundos
+setInterval(function() {
+    fetch('/api/status')
+        .then(response => response.json())
+        .then(data => {
+            // Atualizar status dos componentes
+            updateComponentStatus('api', data.api_status);
+            updateComponentStatus('db', data.db_status);
+            updateComponentStatus('auth', data.auth_status);
+            updateComponentStatus('payment', data.payment_status);
+            
+            // Atualizar última atualização
+            document.getElementById('last-update').textContent = new Date().toLocaleString();
+        })
+        .catch(error => console.error('Erro ao atualizar status:', error));
+}, 30000);
+
+function updateComponentStatus(component, status) {
+    const element = document.querySelector(`[data-component="${component}"]`);
+    if (element) {
+        element.className = `status-badge ${status}`;
+        element.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    }
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Exportar e Integrar - EazyBrief{% endblock %}
+
+{% block page_title %}Exportar e Integrar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Seção de Exportação -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Exportar Brief</h3>
+                </div>
+                <div class="card-body">
+                    <form id="exportForm">
+                        <div class="mb-3">
+                            <label class="form-label">Formato</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="format" id="pdf" value="pdf" checked>
+                                <label class="btn btn-outline-primary" for="pdf">PDF</label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="docx" value="docx">
+                                <label class="btn btn-outline-primary" for="docx">Word</label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="txt" value="txt">
+                                <label class="btn btn-outline-primary" for="txt">TXT</label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="html" value="html">
+                                <label class="btn btn-outline-primary" for="html">HTML</label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Opções</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeMetadata" name="includeMetadata">
+                                <label class="form-check-label" for="includeMetadata">
+                                    Incluir metadados (data de criação, atualização)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeImages" name="includeImages">
+                                <label class="form-check-label" for="includeImages">
+                                    Incluir imagens
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeComments" name="includeComments">
+                                <label class="form-check-label" for="includeComments">
+                                    Incluir comentários
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-download me-2"></i>Exportar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção de Integrações -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Integrações</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-outline-primary" onclick="connectGoogleDrive()">
+                            <i class="fab fa-google-drive me-2"></i>Conectar com Google Drive
+                        </button>
+                        
+                        <button class="btn btn-outline-primary" onclick="connectTrello()">
+                            <i class="fab fa-trello me-2"></i>Conectar com Trello
+                        </button>
+                        
+                        <button class="btn btn-outline-primary" onclick="connectSlack()">
+                            <i class="fab fa-slack me-2"></i>Conectar com Slack
+                        </button>
+                        
+                        <button class="btn btn-outline-primary" onclick="connectTeams()">
+                            <i class="fab fa-microsoft me-2"></i>Conectar com Microsoft Teams
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mensagem de feedback -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="feedbackToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Notificação</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const exportForm = document.getElementById('exportForm');
+    const feedbackToast = new bootstrap.Toast(document.getElementById('feedbackToast'));
+    
+    exportForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const format = document.querySelector('input[name="format"]:checked').value;
+        const options = {
+            includeMetadata: document.getElementById('includeMetadata').checked,
+            includeImages: document.getElementById('includeImages').checked,
+            includeComments: document.getElementById('includeComments').checked
+        };
+        
+        try {
+            const response = await fetch(`/api/export/${format}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(options)
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brief.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                
+                showFeedback('Brief exportado com sucesso!', 'success');
+            } else {
+                const data = await response.json();
+                showFeedback(data.error || 'Erro ao exportar brief', 'error');
+            }
+        } catch (error) {
+            showFeedback('Erro ao exportar brief: ' + error.message, 'error');
+        }
+    });
+});
+
+function showFeedback(message, type = 'success') {
+    const toast = document.getElementById('feedbackToast');
+    const toastBody = toast.querySelector('.toast-body');
+    
+    toastBody.textContent = message;
+    toast.classList.remove('bg-success', 'bg-danger');
+    toast.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+}
+
+async function connectGoogleDrive() {
+    try {
+        const response = await fetch('/api/integrations/google-drive/auth');
+        const data = await response.json();
+        
+        if (data.authUrl) {
+            window.location.href = data.authUrl;
+        } else {
+            showFeedback(data.error || 'Erro ao conectar com Google Drive', 'error');
+        }
+    } catch (error) {
+        showFeedback('Erro ao conectar com Google Drive: ' + error.message, 'error');
+    }
+}
+
+async function connectTrello() {
+    try {
+        const response = await fetch('/api/integrations/trello/auth');
+        const data = await response.json();
+        
+        if (data.authUrl) {
+            window.location.href = data.authUrl;
+        } else {
+            showFeedback(data.error || 'Erro ao conectar com Trello', 'error');
+        }
+    } catch (error) {
+        showFeedback('Erro ao conectar com Trello: ' + error.message, 'error');
+    }
+}
+
+async function connectSlack() {
+    try {
+        const response = await fetch('/api/integrations/slack/auth');
+        const data = await response.json();
+        
+        if (data.authUrl) {
+            window.location.href = data.authUrl;
+        } else {
+            showFeedback(data.error || 'Erro ao conectar com Slack', 'error');
+        }
+    } catch (error) {
+        showFeedback('Erro ao conectar com Slack: ' + error.message, 'error');
+    }
+}
+
+async function connectTeams() {
+    try {
+        const response = await fetch('/api/integrations/teams/auth');
+        const data = await response.json();
+        
+        if (data.authUrl) {
+            window.location.href = data.authUrl;
+        } else {
+            showFeedback(data.error || 'Erro ao conectar com Microsoft Teams', 'error');
+        }
+    } catch (error) {
+        showFeedback('Erro ao conectar com Microsoft Teams: ' + error.message, 'error');
+    }
+}
+</script>
+{% endblock %} 

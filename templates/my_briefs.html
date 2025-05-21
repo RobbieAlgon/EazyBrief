@@ -1,39 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Meus Briefs') }} - EazyBrief{% endblock %}
+{% block title %}Meus Briefs - EazyBrief{% endblock %}
 
-{% block page_title %}{{ _('Meus Briefs') }}{% endblock %}
+{% block page_title %}Meus Briefs{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto mt-8">
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 class="text-lg font-medium text-gray-900">{{ _('Todos os meus briefs') }}</h2>
-            <span class="text-sm text-gray-500">{{ _('Total:') }} {{ briefs|length }}</span>
+<div class="max-w-7xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Meus Briefs</h2>
+            <a href="{{ url_for('new_brief') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Novo Brief
+            </a>
         </div>
-        <div class="divide-y divide-gray-200">
-            {% if briefs and briefs|length > 0 %}
-                {% for brief in briefs %}
-                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between hover:bg-gray-50">
-                    <div class="flex items-center">
-                        <div class="h-10 w-10 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                            <i class="fas fa-file-alt"></i>
+
+        {% if briefs %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for brief in briefs %}
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">{{ brief.brief_type }}</h3>
+                            <p class="text-sm text-gray-500">Criado em {{ brief.created_at[:10]|replace('-', '/') }}</p>
                         </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-900">{{ brief.brief_type|capitalize }} - {{ brief.template|capitalize }}</h3>
-                            <p class="text-xs text-gray-500">{{ _('Criado em') }} {{ brief.created_at[:10]|replace('-', '/') }}</p>
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="text-indigo-600 hover:text-indigo-800">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ url_for('delete_brief', brief_id=brief.id) }}" method="POST" class="inline"
+                                  onsubmit="return confirm('Tem certeza que deseja excluir este brief?');">
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
-                    <div class="mt-2 md:mt-0 flex items-center space-x-2">
-                        <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">{{ _('Visualizar') }}</a>
-                        <!-- Futuro: editar/excluir -->
+                    <div class="mt-4">
+                        <p class="text-sm text-gray-600 line-clamp-3">{{ brief.text[:200] }}...</p>
                     </div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="px-6 py-4 text-gray-500">{{ _('Nenhum brief encontrado.') }}</div>
-            {% endif %}
+            </div>
+            {% endfor %}
         </div>
+        {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-500">Você ainda não tem nenhum brief.</p>
+            <a href="{{ url_for('new_brief') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Criar Primeiro Brief
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

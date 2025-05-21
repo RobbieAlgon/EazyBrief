@@ -1,34 +1,61 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Editar Brief') }} - EazyBrief{% endblock %}
+{% block title %}Editar Brief - EazyBrief{% endblock %}
 
-{% block page_title %}{{ _('Editar Brief') }}{% endblock %}
+{% block page_title %}Editar Brief{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto mt-8 bg-white rounded-lg shadow p-8">
-    {% if brief %}
-    <form method="POST">
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Título/Tipo') }}</label>
-            <input type="text" name="brief_type" class="form-input w-full" value="{{ brief.brief_type }}" required>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Template') }}</label>
-            <input type="text" name="template" class="form-input w-full" value="{{ brief.template }}" required>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Texto Original') }}</label>
-            <textarea name="text" class="form-textarea w-full" rows="4" required>{{ brief.text }}</textarea>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">{{ _('Briefing Gerado') }}</label>
-            <textarea name="result" class="form-textarea w-full" rows="8" required>{{ brief.result }}</textarea>
-        </div>
-        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">{{ _('Salvar Alterações') }}</button>
-        <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="ml-4 text-gray-600 hover:text-indigo-600">{{ _('Cancelar') }}</a>
-    </form>
-    {% else %}
-        <div class="text-gray-500">{{ _('Brief não encontrado.') }}</div>
-    {% endif %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Brief</label>
+                    <select name="brief_type" required class="form-select w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Selecione um tipo</option>
+                        <option value="Design Gráfico" {% if brief.brief_type == 'Design Gráfico' %}selected{% endif %}>Design Gráfico</option>
+                        <option value="Marketing Digital" {% if brief.brief_type == 'Marketing Digital' %}selected{% endif %}>Marketing Digital</option>
+                        <option value="Desenvolvimento Web" {% if brief.brief_type == 'Desenvolvimento Web' %}selected{% endif %}>Desenvolvimento Web</option>
+                        <option value="Mídias Sociais" {% if brief.brief_type == 'Mídias Sociais' %}selected{% endif %}>Mídias Sociais</option>
+                        <option value="Produção de Vídeo" {% if brief.brief_type == 'Produção de Vídeo' %}selected{% endif %}>Produção de Vídeo</option>
+                        <option value="Personalizado" {% if brief.brief_type == 'Personalizado' %}selected{% endif %}>Personalizado</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <select name="template" required class="form-select w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Selecione um template</option>
+                        <option value="Clássico" {% if brief.template == 'Clássico' %}selected{% endif %}>Clássico</option>
+                        <option value="Visual" {% if brief.template == 'Visual' %}selected{% endif %}>Visual</option>
+                        <option value="Minimalista" {% if brief.template == 'Minimalista' %}selected{% endif %}>Minimalista</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Descrição do Projeto</label>
+                <textarea name="text" rows="6" required class="form-textarea w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ brief.text }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Imagem de Referência (opcional)</label>
+                {% if brief.image_data_url %}
+                <div class="mb-4">
+                    <img src="{{ brief.image_data_url }}" alt="Imagem atual" class="max-w-xs rounded shadow">
+                </div>
+                {% endif %}
+                <input type="file" name="image" accept="image/*" class="form-input w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Cancelar
+                </a>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Notificações - EazyBrief{% endblock %}
+
+{% block page_title %}Notificações{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Suas Notificações</h2>
+            <button onclick="markAllAsRead()" class="text-sm text-indigo-600 hover:text-indigo-800">
+                Marcar todas como lidas
+            </button>
+        </div>
+
+        <div class="space-y-4" id="notifications-list">
+            {% if notifications %}
+                {% for notification in notifications %}
+                <div class="p-4 rounded-lg {% if not notification.read %}bg-indigo-50{% else %}bg-gray-50{% endif %} hover:bg-gray-100 transition-colors duration-200">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            {% if notification.type == 'success' %}
+                                <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                            {% elif notification.type == 'warning' %}
+                                <i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>
+                            {% elif notification.type == 'info' %}
+                                <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                            {% else %}
+                                <i class="fas fa-bell text-gray-500 text-xl"></i>
+                            {% endif %}
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
+                            <p class="text-sm text-gray-500">{{ notification.message }}</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ notification.created_at }}</p>
+                        </div>
+                        {% if not notification.read %}
+                        <button onclick="markAsRead('{{ notification.id }}')" class="ml-4 text-sm text-indigo-600 hover:text-indigo-800">
+                            Marcar como lida
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-bell text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-500">Nenhuma notificação no momento.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function markAsRead(notificationId) {
+    fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            notification.classList.remove('bg-indigo-50');
+            notification.classList.add('bg-gray-50');
+            const readButton = notification.querySelector('button');
+            if (readButton) readButton.remove();
+        }
+    });
+}
+
+function markAllAsRead() {
+    fetch('/api/notifications/read-all', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.querySelectorAll('.bg-indigo-50').forEach(notification => {
+                notification.classList.remove('bg-indigo-50');
+                notification.classList.add('bg-gray-50');
+                const readButton = notification.querySelector('button');
+                if (readButton) readButton.remove();
+            });
+        }
+    });
+}
+</script>
+{% endblock %} 

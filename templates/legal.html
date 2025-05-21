@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Termos de Uso e Política de Privacidade - EazyBrief{% endblock %}
+
+{% block page_title %}Termos de Uso e Política de Privacidade{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <!-- Termos de Uso -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Termos de Uso</h2>
+            
+            <div class="prose max-w-none">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">1. Aceitação dos Termos</h3>
+                <p class="text-gray-600 mb-4">
+                    Ao acessar e usar o EazyBrief, você concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis, e reconhece que é responsável pelo cumprimento de quaisquer leis locais aplicáveis.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">2. Uso do Serviço</h3>
+                <p class="text-gray-600 mb-4">
+                    O EazyBrief é uma plataforma para criação e gerenciamento de briefs. Você concorda em usar o serviço apenas para fins legais e de acordo com estes termos.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">3. Contas de Usuário</h3>
+                <p class="text-gray-600 mb-4">
+                    Ao criar uma conta, você é responsável por manter a confidencialidade de sua conta e senha. Você concorda em aceitar a responsabilidade por todas as atividades que ocorram em sua conta.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">4. Propriedade Intelectual</h3>
+                <p class="text-gray-600 mb-4">
+                    O conteúdo do EazyBrief, incluindo textos, gráficos, logotipos, ícones e software, é propriedade do EazyBrief e está protegido por leis de direitos autorais.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">5. Limitações</h3>
+                <p class="text-gray-600 mb-4">
+                    O EazyBrief não será responsável por quaisquer danos que possam resultar do uso ou incapacidade de usar os materiais em nosso site.
+                </p>
+            </div>
+        </div>
+
+        <!-- Política de Privacidade -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Política de Privacidade</h2>
+            
+            <div class="prose max-w-none">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">1. Coleta de Informações</h3>
+                <p class="text-gray-600 mb-4">
+                    Coletamos informações que você nos fornece diretamente, como nome, endereço de e-mail e informações de pagamento. Também coletamos informações sobre como você usa nosso serviço.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">2. Uso das Informações</h3>
+                <p class="text-gray-600 mb-4">
+                    Usamos as informações coletadas para fornecer, manter e melhorar nossos serviços, processar transações e enviar notificações relacionadas ao serviço.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">3. Compartilhamento de Informações</h3>
+                <p class="text-gray-600 mb-4">
+                    Não compartilhamos suas informações pessoais com terceiros, exceto quando necessário para fornecer nossos serviços ou quando exigido por lei.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">4. Segurança</h3>
+                <p class="text-gray-600 mb-4">
+                    Implementamos medidas de segurança para proteger suas informações pessoais contra acesso não autorizado, alteração, divulgação ou destruição.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">5. Seus Direitos</h3>
+                <p class="text-gray-600 mb-4">
+                    Você tem o direito de acessar, corrigir ou excluir suas informações pessoais. Você também pode optar por não receber comunicações de marketing.
+                </p>
+
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">6. Alterações na Política</h3>
+                <p class="text-gray-600 mb-4">
+                    Podemos atualizar nossa política de privacidade periodicamente. Notificaremos você sobre quaisquer alterações publicando a nova política nesta página.
+                </p>
+            </div>
+        </div>
+
+        <!-- Data de Última Atualização -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-500">
+                Última atualização: {{ last_update }}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Suporte - EazyBrief{% endblock %}
+
+{% block page_title %}Suporte{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- FAQ Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Perguntas Frequentes</h2>
+            <div class="space-y-4">
+                <div class="border-b border-gray-200 pb-4">
+                    <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
+                        <span class="text-lg font-medium text-gray-900">Como funciona o EazyBrief?</span>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden">
+                        O EazyBrief é uma plataforma que ajuda você a criar briefings profissionais de forma rápida e eficiente. Basta inserir suas informações e nossa IA irá gerar um briefing completo e estruturado.
+                    </div>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
+                        <span class="text-lg font-medium text-gray-900">Quais são os planos disponíveis?</span>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden">
+                        Oferecemos três planos: Grátis (3 briefs/mês), Pro (50 briefs/mês) e Premium (briefs ilimitados). Cada plano tem recursos específicos para atender diferentes necessidades.
+                    </div>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
+                        <span class="text-lg font-medium text-gray-900">Como posso exportar meus briefs?</span>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden">
+                        Você pode exportar seus briefs em vários formatos: PDF, DOCX, TXT e HTML. Basta acessar o brief desejado e clicar no botão de exportação.
+                    </div>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
+                        <span class="text-lg font-medium text-gray-900">Como funciona o sistema de pagamento?</span>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </button>
+                    <div class="mt-2 text-gray-600 hidden">
+                        Utilizamos o Stripe como processador de pagamentos. Aceitamos cartões de crédito e débito. O pagamento é processado de forma segura e você receberá um recibo por email.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Entre em Contato</h2>
+            <form id="contact-form" class="space-y-4">
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700">Assunto</label>
+                    <select id="subject" name="subject" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="general">Geral</option>
+                        <option value="technical">Suporte Técnico</option>
+                        <option value="billing">Faturamento</option>
+                        <option value="feedback">Feedback</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700">Mensagem</label>
+                    <textarea id="message" name="message" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Enviar Mensagem
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFAQ(button) {
+    const content = button.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    content.classList.toggle('hidden');
+    icon.classList.toggle('fa-chevron-down');
+    icon.classList.toggle('fa-chevron-up');
+}
+
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        subject: document.getElementById('subject').value,
+        message: document.getElementById('message').value
+    };
+
+    fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+            document.getElementById('contact-form').reset();
+        } else {
+            alert('Erro ao enviar mensagem. Por favor, tente novamente.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao enviar mensagem. Por favor, tente novamente.');
+    });
+});
+</script>
+{% endblock %} 

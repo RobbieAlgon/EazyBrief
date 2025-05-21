@@ -1,153 +1,307 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    {# Google Analytics 4 #}
+    {% if GA_MEASUREMENT_ID %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ GA_MEASUREMENT_ID }}');
+    </script>
+    {% endif %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EazyBrief{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     {% block extra_css %}
-<style>
-.prose h1, .prose h2, .prose h3, .prose h4 {
-  color: #4338ca; /* Indigo-700 */
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 8px rgba(67,56,202,0.12);
-}
-.prose strong {
-  color: #059669; /* Emerald-600 */
-  background: linear-gradient(90deg, #e0f2fe 0%, #f0fdf4 100%);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(5,150,105,0.08);
-}
-</style>
-{% endblock %}
+    <style>
+        .prose h1, .prose h2, .prose h3, .prose h4 {
+            color: #4338ca;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 8px rgba(67,56,202,0.12);
+        }
+        .prose strong {
+            color: #059669;
+            background: linear-gradient(90deg, #e0f2fe 0%, #f0fdf4 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            box-shadow: 0 1px 2px rgba(5,150,105,0.08);
+        }
+        /* Estilos para o menu lateral */
+        .sidebar {
+            transition: all 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -100%;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+        /* Ajuste do conteúdo principal para compensar o menu fixo */
+        .main-content {
+            margin-left: 16rem; /* 256px - largura do menu */
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% endblock %}
+    {% if GA_MEASUREMENT_ID %}
+    <script>
+        function trackEventGA(eventName, params) {
+            if (typeof gtag === 'function') {
+                gtag('event', eventName, params || {});
+            }
+        }
+    </script>
+    {% endif %}
 </head>
-<body class="{% if user_theme == 'dark' %}bg-gray-900 text-gray-100{% elif user_theme == 'blue' %}bg-blue-100{% elif user_theme == 'green' %}bg-green-100{% else %}bg-gray-100{% endif %}">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out
-    {% if user_theme == 'dark' %}bg-gray-800 text-gray-100{% elif user_theme == 'blue' %}bg-blue-800 text-blue-100{% elif user_theme == 'green' %}bg-green-800 text-green-100{% else %}bg-indigo-800 text-white{% endif %}" id="sidebar">
-            <div class="text-white flex items-center space-x-2 px-4">
-                <i class="fas fa-file-alt text-2xl"></i>
-                <span class="text-2xl font-extrabold">{{ _('EazyBrief') }}</span>
-            </div>
-            <nav>
-                <a href="{{ url_for('dashboard') }}" class="block py-2.5 px-4 rounded transition duration-200 
-    {% if user_theme == 'dark' %}hover:bg-gray-700{% elif user_theme == 'blue' %}hover:bg-blue-700{% elif user_theme == 'green' %}hover:bg-green-700{% else %}hover:bg-indigo-700{% endif %}">
-                    <i class="fas fa-home mr-2"></i>{{ _('Dashboard') }}
+{% if user_theme == 'dark' %}
+    {% set body_class = 'bg-gray-900 text-gray-100' %}
+{% elif user_theme == 'blue' %}
+    {% set body_class = 'bg-blue-100' %}
+{% elif user_theme == 'green' %}
+    {% set body_class = 'bg-green-100' %}
+{% else %}
+    {% set body_class = 'bg-gray-100' %}
+{% endif %}
+<body class="{{ body_class }}">
+    <div class="flex min-h-screen">
+        {% if session.get('user') and session.get('user_email') %}
+        <!-- Botão de toggle do menu para mobile -->
+        <button id="sidebar-toggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-indigo-600 text-white">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Overlay para fechar o menu no mobile -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        <!-- Sidebar (apenas para usuários logados) -->
+        {% if user_theme == 'dark' %}
+            {% set sidebar_class = 'sidebar w-64 space-y-6 py-7 px-2 bg-gray-800 text-gray-100 min-h-screen flex-shrink-0 fixed md:relative' %}
+            {% set nav_link_class = 'block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700' %}
+        {% elif user_theme == 'blue' %}
+            {% set sidebar_class = 'sidebar w-64 space-y-6 py-7 px-2 bg-blue-800 text-blue-100 min-h-screen flex-shrink-0 fixed md:relative' %}
+            {% set nav_link_class = 'block py-2.5 px-4 rounded transition duration-200 hover:bg-blue-700' %}
+        {% elif user_theme == 'green' %}
+            {% set sidebar_class = 'sidebar w-64 space-y-6 py-7 px-2 bg-green-800 text-green-100 min-h-screen flex-shrink-0 fixed md:relative' %}
+            {% set nav_link_class = 'block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700' %}
+        {% else %}
+            {% set sidebar_class = 'sidebar w-64 space-y-6 py-7 px-2 bg-indigo-800 text-white min-h-screen flex-shrink-0 fixed md:relative' %}
+            {% set nav_link_class = 'block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700' %}
+        {% endif %}
+        <aside class="{{ sidebar_class }}" id="sidebar">
+            <nav class="mt-4">
+                <a href="{{ url_for('dashboard') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-home mr-2"></i>Dashboard
                 </a>
-                <a href="{{ url_for('new_brief') }}" class="block py-2.5 px-4 rounded transition duration-200 
-    {% if user_theme == 'dark' %}hover:bg-gray-700{% elif user_theme == 'blue' %}hover:bg-blue-700{% elif user_theme == 'green' %}hover:bg-green-700{% else %}hover:bg-indigo-700{% endif %}">
-                    <i class="fas fa-plus-circle mr-2"></i>{{ _('Novo Brief') }}
+                <a href="{{ url_for('new_brief') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-plus-circle mr-2"></i>Novo Brief
                 </a>
-                <a href="{{ url_for('my_briefs') }}" class="block py-2.5 px-4 rounded transition duration-200 
-    {% if user_theme == 'dark' %}hover:bg-gray-700{% elif user_theme == 'blue' %}hover:bg-blue-700{% elif user_theme == 'green' %}hover:bg-green-700{% else %}hover:bg-indigo-700{% endif %}">
-                    <i class="fas fa-list mr-2"></i>{{ _('Meus Briefs') }}
+                <a href="{{ url_for('my_briefs') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-list mr-2"></i>Meus Briefs
                 </a>
-                <a href="{{ url_for('settings') }}" class="block py-2.5 px-4 rounded transition duration-200 
-    {% if user_theme == 'dark' %}hover:bg-gray-700{% elif user_theme == 'blue' %}hover:bg-blue-700{% elif user_theme == 'green' %}hover:bg-green-700{% else %}hover:bg-indigo-700{% endif %}">
-                    <i class="fas fa-cog mr-2"></i>{{ _('Configurações') }}
+                <a href="{{ url_for('notifications') }}" class="{{ nav_link_class }} relative">
+                    <i class="fas fa-bell mr-2"></i>Notificações
+                    {% if notification_count > 0 %}
+                    <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+                        {{ notification_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('support') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-headset mr-3"></i>
+                    Suporte
+                </a>
+                <a href="{{ url_for('status') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-server mr-3"></i>
+                    Status
+                </a>
+                <a href="{{ url_for('feedback') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-comment-dots mr-3"></i>
+                    Feedback
+                </a>
+                <a href="{{ url_for('settings') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-cog mr-2"></i>Configurações
                 </a>
             </nav>
-        </div>
+        </aside>
+        {% endif %}
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Top bar -->
-            <header class="z-10 shadow-sm {% if user_theme == 'dark' %}bg-gray-900 text-gray-100{% elif user_theme == 'blue' %}bg-blue-700 text-blue-100{% elif user_theme == 'green' %}bg-green-700 text-green-100{% else %}bg-white{% endif %}">
-                <div class="flex items-center justify-between p-4">
-                    <div class="flex items-center">
-                        <button id="menu-toggle" class="text-gray-500 focus:outline-none md:hidden">
-                            <i class="fas fa-bars text-2xl"></i>
-                        </button>
-                        <h1 class="ml-4 text-xl font-semibold text-gray-800">{% block page_title %}{% endblock %}</h1>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <button class="text-gray-600 focus:outline-none">
-                                <i class="fas fa-bell text-xl"></i>
-                            </button>
-                            <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+        <!-- Main Content Column -->
+        <div class="flex-1 flex flex-col min-h-screen {% if session.get('user') and session.get('user_email') %}main-content{% endif %}">
+            <header class="bg-white shadow">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-32">
+                        <div class="flex items-center">
+                            <a href="/" class="flex items-center">
+                                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief Logo" class="h-28 w-auto object-contain">
+                            </a>
                         </div>
-                        <div class="relative">
-                            <button class="flex items-center focus:outline-none" id="user-menu">
-                                {% if user_photo %}
-    <img src="{{ user_photo }}" alt="Avatar" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-400">
-{% else %}
-    <div class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold">
-        <i class="fas fa-user"></i>
-    </div>
-{% endif %}
-                                <span class="ml-2 text-gray-700 hidden md:inline">{{ _('Usuário') }}</span>
-                                <i class="fas fa-chevron-down ml-1 text-gray-600"></i>
-                            </button>
-                            <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 hidden transition-all duration-200 z-50
-    {% if user_theme == 'dark' %}bg-gray-900{% elif user_theme == 'blue' %}bg-blue-900{% elif user_theme == 'green' %}bg-green-900{% else %}bg-white{% endif %}"
-     id="user-dropdown">
-    <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm transition-all duration-200 {% if user_theme == 'dark' %}text-gray-100 hover:bg-gray-700{% elif user_theme == 'blue' %}text-blue-100 hover:bg-blue-800{% elif user_theme == 'green' %}text-green-100 hover:bg-green-800{% else %}text-gray-700 hover:bg-gray-100{% endif %}">{{ _('Meu Perfil') }}</a>
-<a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm transition-all duration-200 {% if user_theme == 'dark' %}text-gray-100 hover:bg-gray-700{% elif user_theme == 'blue' %}text-blue-100 hover:bg-blue-800{% elif user_theme == 'green' %}text-green-100 hover:bg-green-800{% else %}text-gray-700 hover:bg-gray-100{% endif %}">{{ _('Sair') }}</a>
-</div>
+                        <div class="flex items-center">
+                            {% if session.get('user') and session.get('user_email') %}
+                                <div class="relative">
+                                    <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center space-x-2 focus:outline-none">
+                                        {% if user_photo %}
+                                            <img src="{{ user_photo }}" alt="Foto do perfil" class="h-8 w-8 rounded-full">
+                                        {% else %}
+                                            <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="flex flex-col items-start">
+                                            <span class="text-gray-700">{{ session.get('user_email') }}</span>
+                                            <span class="text-xs font-medium {% if user_plan == 'premium' %}text-yellow-600{% elif user_plan == 'pro' %}text-blue-600{% else %}text-gray-500{% endif %}">
+                                                Plano {{ plans[user_plan].name }}
+                                            </span>
+                                        </div>
+                                    </button>
+                                    <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 hidden bg-white" id="user-dropdown">
+                                        <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
+                                        <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="flex space-x-4">
+                                    <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">Entrar</a>
+                                    <a href="{{ url_for('signup') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Cadastrar</a>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </header>
 
             <!-- Page content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 {% if user_theme == 'dark' %}bg-gray-900 text-gray-100{% elif user_theme == 'blue' %}bg-blue-100{% elif user_theme == 'green' %}bg-green-100{% else %}bg-gray-100{% endif %}">
+            {% if user_theme == 'dark' %}
+                {% set main_class = 'flex-1 overflow-x-hidden overflow-y-auto p-4 bg-gray-900 text-gray-100' %}
+            {% elif user_theme == 'blue' %}
+                {% set main_class = 'flex-1 overflow-x-hidden overflow-y-auto p-4 bg-blue-100' %}
+            {% elif user_theme == 'green' %}
+                {% set main_class = 'flex-1 overflow-x-hidden overflow-y-auto p-4 bg-green-100' %}
+            {% else %}
+                {% set main_class = 'flex-1 overflow-x-hidden overflow-y-auto p-4 bg-gray-100' %}
+            {% endif %}
+            <main class="{{ main_class }}">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="mb-4 p-4 rounded-xl shadow-lg transition-all duration-200
-    {% if user_theme == 'dark' and category == 'success' %}bg-green-900 text-green-200
-    {% elif user_theme == 'dark' and category == 'error' %}bg-red-900 text-red-200
-    {% elif user_theme == 'dark' and category == 'warning' %}bg-yellow-900 text-yellow-200
-    {% elif user_theme == 'dark' %}bg-gray-800 text-gray-100
-    {% elif user_theme == 'blue' and category == 'success' %}bg-blue-900 text-green-200
-    {% elif user_theme == 'blue' and category == 'error' %}bg-blue-900 text-red-200
-    {% elif user_theme == 'blue' and category == 'warning' %}bg-blue-900 text-yellow-200
-    {% elif user_theme == 'blue' %}bg-blue-800 text-blue-100
-    {% elif user_theme == 'green' and category == 'success' %}bg-green-900 text-green-200
-    {% elif user_theme == 'green' and category == 'error' %}bg-green-900 text-red-200
-    {% elif user_theme == 'green' and category == 'warning' %}bg-green-900 text-yellow-200
-    {% elif user_theme == 'green' %}bg-green-800 text-green-100
-    {% elif category == 'success' %}bg-green-100 text-green-800
-    {% elif category == 'error' %}bg-red-100 text-red-800
-    {% elif category == 'warning' %}bg-yellow-100 text-yellow-800
-    {% else %}bg-blue-100 text-blue-800{% endif %}">
-    {{ message }}
-</div>
+                            {% if user_theme == 'dark' %}
+                                {% if category == 'success' %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-green-900 text-green-200' %}
+                                {% elif category == 'error' %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-red-900 text-red-200' %}
+                                {% elif category == 'warning' %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-yellow-900 text-yellow-200' %}
+                                {% else %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-gray-800 text-gray-100' %}
+                                {% endif %}
+                            {% else %}
+                                {% if category == 'success' %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-green-100 text-green-800' %}
+                                {% elif category == 'error' %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-red-100 text-red-800' %}
+                                {% elif category == 'warning' %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-yellow-100 text-yellow-800' %}
+                                {% else %}
+                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg transition-all duration-200 bg-gray-100 text-gray-800' %}
+                                {% endif %}
+                            {% endif %}
+                            <div class="{{ message_class }}">
+                                {{ message }}
+                            </div>
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
-                
                 {% block content %}{% endblock %}
             </main>
+
+            <footer class="bg-white border-t border-gray-200 py-4">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-500">
+                            &copy; {{ year }} EazyBrief. Todos os direitos reservados.
+                        </div>
+                        <div class="flex space-x-6">
+                            <a href="{{ url_for('legal') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                                Termos de Uso e Privacidade
+                            </a>
+                            <a href="{{ url_for('feedback') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                                Feedback
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
+    <!-- Script para controlar o menu lateral -->
     <script>
-        // Toggle mobile menu
-        document.getElementById('menu-toggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // Toggle user dropdown
-        document.getElementById('user-menu').addEventListener('click', function() {
-            document.getElementById('user-dropdown').classList.toggle('hidden');
-        });
+            if (sidebarToggle && sidebar && sidebarOverlay) {
+                // Função para alternar o menu
+                function toggleSidebar() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                }
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('user-dropdown');
-            const userMenu = document.getElementById('user-menu');
-            if (!userMenu.contains(event.target) && !dropdown.contains(event.target)) {
-                dropdown.classList.add('hidden');
+                // Event listeners
+                sidebarToggle.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+
+                // Fechar menu ao clicar em um link (mobile)
+                const navLinks = sidebar.querySelectorAll('nav a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth < 768) {
+                            toggleSidebar();
+                        }
+                    });
+                });
+
+                // Ajustar menu ao redimensionar a janela
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768) {
+                        sidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                });
             }
         });
     </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

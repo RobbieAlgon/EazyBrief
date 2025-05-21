@@ -1,68 +1,252 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Visualizar Brief') }} - EazyBrief{% endblock %}
+{% block title %}Visualizar Brief - EazyBrief{% endblock %}
 
-{% block page_title %}{{ _('Visualizar Brief') }}{% endblock %}
+{% block page_title %}Visualizar Brief{% endblock %}
 
 {% block content %}
-    {# Dicionários para tradução dinâmica dos tipos e templates #}
-    {% set type_labels = {
-        'Design Gráfico': _('Design Gráfico'),
-        'Marketing Digital': _('Marketing Digital'),
-        'Desenvolvimento Web': _('Desenvolvimento Web'),
-        'Mídias Sociais': _('Mídias Sociais'),
-        'Produção de Vídeo': _('Produção de Vídeo'),
-        'Personalizado': _('Personalizado')
-    } %}
-    {% set template_labels = {
-        'Clássico': _('Clássico'),
-        'Visual': _('Visual'),
-        'Minimalista': _('Minimalista')
-    } %}
-    <div class="max-w-3xl mx-auto mt-8 bg-white rounded-lg shadow p-8">
-        {% if brief %}
-            <div class="mb-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-gray-900">
-                    {{ type_labels.get(brief.brief_type, brief.brief_type) }} - {{ template_labels.get(brief.template, brief.template) }}
-                </h2>
-                <span class="text-xs text-gray-500">{{ _('Criado em') }} {{ brief.created_at[:10]|replace('-', '/') }}</span>
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="brief-card">
+                <div class="brief-header">
+                    <div class="brief-title">
+                        <h2>{{ brief.brief_type }}</h2>
+                        <span class="brief-date">{{ brief.created_at }}</span>
+                    </div>
+                    <div class="brief-actions">
+                        <div class="action-group">
+                            <button type="button" class="action-btn export-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-file-export"></i>
+                                <span>Exportar</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('export_brief_pdf', brief_id=brief.id) }}">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span>PDF</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('export_brief_docx', brief_id=brief.id) }}">
+                                        <i class="fas fa-file-word"></i>
+                                        <span>Word</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('export_brief_txt', brief_id=brief.id) }}">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>TXT</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('export_brief_html', brief_id=brief.id) }}">
+                                        <i class="fas fa-file-code"></i>
+                                        <span>HTML</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="action-btn edit-btn">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar</span>
+                        </a>
+                        <form action="{{ url_for('delete_brief', brief_id=brief.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este brief?');">
+                            <button type="submit" class="action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                                <span>Excluir</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="brief-content">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <i class="fas fa-file-alt"></i>
+                            <h3>Texto Original</h3>
+                        </div>
+                        <div class="section-body">
+                            {{ brief.text|markdown|safe }}
+                        </div>
+                    </div>
+                    <div class="content-section">
+                        <div class="section-header">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Resultado</h3>
+                        </div>
+                        <div class="section-body">
+                            {{ brief.result|markdown|safe }}
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">{{ _('Texto Original:') }}</h3>
-                <div class="bg-gray-100 rounded p-3 text-gray-700 text-sm whitespace-pre-line">{{ brief.text }}</div>
-            </div>
-            {% if brief.extras and brief.extras|length > 0 %}
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">{{ _('Campos Adicionais:') }}</h3>
-                <ul class="list-disc ml-6 text-gray-700 text-sm">
-                    {% for item in brief.extras %}
-                        <li><strong>{{ item.name }}:</strong> {{ item.value }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-            {% if brief.image_data_url %}
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">{{ _('Imagem Enviada:') }}</h3>
-                <img src="{{ brief.image_data_url }}" alt="{{ _('Imagem do Brief') }}" class="max-w-xs rounded shadow">
-            </div>
-            {% endif %}
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-800">{{ _('Briefing Gerado:') }}</h3>
-                <div class="prose prose-indigo max-w-none bg-gray-50 rounded p-4">
-    {{ brief.result | markdown }}
-</div>
-            </div>
-            <div class="flex gap-4">
-                <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">{{ _('Editar') }}</a>
-                <form method="POST"
-      action="{{ url_for('delete_brief', brief_id=brief.id) }}"
-      onsubmit="return confirm(&quot;{{ _('Tem certeza que deseja excluir este brief?') }}&quot;);">
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-md shadow-sm text-red-700 bg-white hover:bg-red-50">{{ _('Excluir') }}</button>
-                </form>
-            </div>
-        {% else %}
-            <div class="text-gray-500">{{ _('Brief não encontrado.') }}</div>
-        {% endif %}
+        </div>
     </div>
+</div>
+
+<style>
+.brief-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.brief-header {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    padding: 2rem;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brief-title h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.brief-date {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.brief-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-group {
+    position: relative;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 0.8rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.action-btn i {
+    font-size: 1.1rem;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    min-width: 200px;
+    z-index: 1000;
+    margin-top: 0.5rem;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    color: #4b5563;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.dropdown-item:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.dropdown-item i {
+    font-size: 1.1rem;
+    width: 20px;
+}
+
+.dropdown-item i.fa-file-pdf { color: #ef4444; }
+.dropdown-item i.fa-file-word { color: #3b82f6; }
+.dropdown-item i.fa-file-alt { color: #6b7280; }
+.dropdown-item i.fa-file-code { color: #10b981; }
+
+.brief-content {
+    padding: 2rem;
+}
+
+.content-section {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.content-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.section-header i {
+    font-size: 1.4rem;
+    color: #4f46e5;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #1f2937;
+}
+
+.section-body {
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .brief-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .brief-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

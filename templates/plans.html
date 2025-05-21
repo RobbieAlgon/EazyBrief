@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Escolha seu plano
+            </h2>
+            <p class="mt-4 text-lg text-gray-600">
+                Selecione o plano que melhor atende às suas necessidades
+            </p>
+        </div>
+
+        <div class="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:grid-cols-3">
+            {% for plan_key, plan in plans.items() %}
+            <div class="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200 {% if plan_key == user_plan %}ring-2 ring-indigo-500{% endif %}">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900">{{ plan.name }}</h2>
+                    <p class="mt-4 text-sm text-gray-500">
+                        {% if plan.brief_limit %}
+                            Até {{ plan.brief_limit }} briefs por mês
+                        {% else %}
+                            Briefs ilimitados
+                        {% endif %}
+                    </p>
+                    <p class="mt-8">
+                        <span class="text-4xl font-extrabold text-gray-900">R${{ plan.price }}</span>
+                        <span class="text-base font-medium text-gray-500">/mês</span>
+                    </p>
+                    {% if plan_key == user_plan %}
+                        <button class="mt-8 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 text-sm font-semibold text-gray-900 text-center">
+                            Plano atual
+                        </button>
+                    {% else %}
+                        <form action="{{ url_for('upgrade', plan_key=plan_key) }}" method="POST" class="mt-8">
+                            <button type="submit" class="block w-full bg-indigo-600 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-indigo-700">
+                                {% if plan.price > 0 %}
+                                    Fazer upgrade
+                                {% else %}
+                                    Selecionar plano
+                                {% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="pt-6 pb-8 px-6">
+                    <h3 class="text-xs font-medium text-gray-900 tracking-wide uppercase">Recursos incluídos</h3>
+                    <ul class="mt-6 space-y-4">
+                        {% for feature in plan.features %}
+                        <li class="flex space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span class="text-sm text-gray-500">{{ feature }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if user_plan != 'free' and plan_expiry %}
+            <div class="mt-8 text-center text-sm text-gray-500">
+                Seu plano atual expira em {{ plan_expiry }}
+            </div>
+        {% endif %}
+
+        {% if user_plan == 'free' and briefs_this_month > 0 %}
+            <div class="mt-8 text-center text-sm text-gray-500">
+                Você já usou {{ briefs_this_month }} de {{ plans[user_plan].brief_limit }} briefs este mês
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if stripe_publishable_key %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+</script>
+{% endif %}
+{% endblock %}

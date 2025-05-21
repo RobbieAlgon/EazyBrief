@@ -1,190 +1,128 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Dashboard') }} - EazyBrief{% endblock %}
+{% block title %}Dashboard - EazyBrief{% endblock %}
 
-{% block page_title %}{{ _('Dashboard') }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- Quick Stats -->
-    <div class="rounded-lg shadow p-6 transition-all duration-200
-    {% if user_theme == 'dark' %}bg-gray-800 text-gray-100 border border-gray-700
-    {% elif user_theme == 'blue' %}bg-blue-900 text-blue-100 border border-blue-800
-    {% elif user_theme == 'green' %}bg-green-900 text-green-100 border border-green-800
-    {% else %}bg-white text-gray-900 border border-gray-200{% endif %}">
-        <div class="flex items-center">
-            <div class="p-3 rounded-full mr-4
-    {% if user_theme == 'dark' %}bg-indigo-900 text-indigo-300
-    {% elif user_theme == 'blue' %}bg-blue-800 text-blue-200
-    {% elif user_theme == 'green' %}bg-green-800 text-green-200
-    {% else %}bg-indigo-100 text-indigo-600{% endif %}">
-                <i class="fas fa-file-alt text-xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-500 text-sm">{{ _('Total de Briefs') }}</p>
-                <h3 class="text-2xl font-bold">{{ briefs_count }}</h3> 
-            </div>
-        </div>
-    </div>
-
-    <div class="rounded-lg shadow p-6 transition-all duration-200
-    {% if user_theme == 'dark' %}bg-gray-800 text-gray-100 border border-gray-700
-    {% elif user_theme == 'blue' %}bg-blue-900 text-blue-100 border border-blue-800
-    {% elif user_theme == 'green' %}bg-green-900 text-green-100 border border-green-800
-    {% else %}bg-white text-gray-900 border border-gray-200{% endif %}">
-        <div class="flex items-center">
-            <div class="p-3 rounded-full mr-4
-    {% if user_theme == 'dark' %}bg-green-800 text-green-200
-    {% elif user_theme == 'blue' %}bg-blue-800 text-green-200
-    {% elif user_theme == 'green' %}bg-green-700 text-green-200
-    {% else %}bg-green-100 text-green-600{% endif %}">
-                <i class="fas fa-check-circle text-xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-500 text-sm">{{ _('Concluídos') }}</p>
-                <h3 class="text-2xl font-bold">{{ concluidos }}</h3>
-            </div>
-        </div>
-    </div>
-
-    <div class="rounded-lg shadow p-6 transition-all duration-200
-    {% if user_theme == 'dark' %}bg-gray-800 text-gray-100 border border-gray-700
-    {% elif user_theme == 'blue' %}bg-blue-900 text-blue-100 border border-blue-800
-    {% elif user_theme == 'green' %}bg-green-900 text-green-100 border border-green-800
-    {% else %}bg-white text-gray-900 border border-gray-200{% endif %}">
-        <div class="flex items-center">
-            <div class="p-3 rounded-full mr-4
-    {% if user_theme == 'dark' %}bg-yellow-900 text-yellow-200
-    {% elif user_theme == 'blue' %}bg-blue-800 text-yellow-200
-    {% elif user_theme == 'green' %}bg-green-800 text-yellow-200
-    {% else %}bg-yellow-100 text-yellow-600{% endif %}">
-                <i class="fas fa-clock text-xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-500 text-sm">{{ _('Em Andamento') }}</p>
-                <h3 class="text-2xl font-bold">{{ andamento }}</h3>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Briefs -->
-<div class="mt-8 bg-white rounded-lg shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium
-    {% if user_theme == 'dark' %}text-gray-100{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-900{% endif %}">{{ _('Meus Briefs Recentes') }}</h2>
-    </div>
-    <div class="divide-y divide-gray-200">
-        {% if briefs and briefs|length > 0 %}
-            {% for brief in briefs[:5] %}
-            <div class="px-6 py-4 flex items-center justify-between transition-all duration-200
-    {% if user_theme == 'dark' %}hover:bg-gray-900{% elif user_theme == 'blue' %}hover:bg-blue-800{% elif user_theme == 'green' %}hover:bg-green-800{% else %}hover:bg-gray-50{% endif %}">
-                <div class="flex items-center">
-                    <div class="h-10 w-10 flex items-center justify-center rounded-full
-    {% if user_theme == 'dark' %}bg-indigo-900 text-indigo-300
-    {% elif user_theme == 'blue' %}bg-blue-800 text-blue-200
-    {% elif user_theme == 'green' %}bg-green-800 text-green-200
-    {% else %}bg-indigo-100 text-indigo-600{% endif %}">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-sm font-medium
-    {% if user_theme == 'dark' %}text-gray-100{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-900{% endif %}">{{ brief.brief_type|capitalize }} - {{ brief.template|capitalize }}</h3>
-                        <p class="text-sm
-    {% if user_theme == 'dark' %}text-gray-400{% elif user_theme == 'blue' %}text-blue-200{% elif user_theme == 'green' %}text-green-200{% else %}text-gray-500{% endif %}">{{ _('Criado em') }} {{ brief.created_at[:10]|replace('-', '/') }}</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-    {% if user_theme == 'dark' %}bg-green-900 text-green-200
-    {% elif user_theme == 'blue' %}bg-blue-900 text-green-200
-    {% elif user_theme == 'green' %}bg-green-800 text-green-200
-    {% else %}bg-green-100 text-green-800{% endif %}">
-                        {{ _('Concluído') }}
-                    </span>
-                    <button class="text-indigo-600 hover:text-indigo-900">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="px-6 py-4
-    {% if user_theme == 'dark' %}text-gray-400{% elif user_theme == 'blue' %}text-blue-200{% elif user_theme == 'green' %}text-green-200{% else %}text-gray-500{% endif %}">{{ _('Nenhum brief encontrado.') }}</div>
-        {% endif %}
-    </div>
-    <div class="px-6 py-4 text-center transition-all duration-200
-    {% if user_theme == 'dark' %}bg-gray-900{% elif user_theme == 'blue' %}bg-blue-800{% elif user_theme == 'green' %}bg-green-800{% else %}bg-gray-50{% endif %}">
-        <a href="{{ url_for('my_briefs') }}" class="text-sm font-medium transition-all duration-200
-    {% if user_theme == 'dark' %}text-indigo-300 hover:text-indigo-400{% elif user_theme == 'blue' %}text-blue-200 hover:text-blue-300{% elif user_theme == 'green' %}text-green-200 hover:text-green-300{% else %}text-indigo-600 hover:text-indigo-800{% endif %}">
-            {{ _('Ver todos os briefs') }}
-        </a>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="rounded-lg shadow p-6 transition-all duration-200
-    {% if user_theme == 'dark' %}bg-gray-800 text-gray-100 border border-gray-700
-    {% elif user_theme == 'blue' %}bg-blue-900 text-blue-100 border border-blue-800
-    {% elif user_theme == 'green' %}bg-green-900 text-green-100 border border-green-800
-    {% else %}bg-white text-gray-900 border border-gray-200{% endif %}">
-        <h3 class="text-lg font-medium mb-4
-    {% if user_theme == 'dark' %}text-gray-100{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-900{% endif %}">{{ _('Criar Novo Brief') }}</h3>
-        <p class="mb-4
-    {% if user_theme == 'dark' %}text-gray-300{% elif user_theme == 'blue' %}text-blue-200{% elif user_theme == 'green' %}text-green-200{% else %}text-gray-600{% endif %}">{{ _('Comece um novo brief do zero ou use um dos nossos modelos.') }}</p>
-        <a href="{{ url_for('new_brief') }}" class="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200
-    {% if user_theme == 'dark' %}text-white bg-indigo-700 hover:bg-indigo-800 border-transparent focus:ring-indigo-400
-    {% elif user_theme == 'blue' %}text-blue-100 bg-blue-700 hover:bg-blue-800 border-transparent focus:ring-blue-400
-    {% elif user_theme == 'green' %}text-green-100 bg-green-700 hover:bg-green-800 border-transparent focus:ring-green-400
-    {% else %}text-white bg-indigo-600 hover:bg-indigo-700 border-transparent focus:ring-indigo-500{% endif %}">
-            <i class="fas fa-plus mr-2"></i> {{ _('Novo Brief') }}
-        </a>
-    </div>
-    <div class="rounded-lg shadow p-6 transition-all duration-200
-    {% if user_theme == 'dark' %}bg-gray-800 text-gray-100 border border-gray-700
-    {% elif user_theme == 'blue' %}bg-blue-900 text-blue-100 border border-blue-800
-    {% elif user_theme == 'green' %}bg-green-900 text-green-100 border border-green-800
-    {% else %}bg-white text-gray-900 border border-gray-200{% endif %}">
-        <h3 class="text-lg font-medium mb-4
-    {% if user_theme == 'dark' %}text-gray-100{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-900{% endif %}">{{ _('Modelos Salvos') }}</h3>
-        <p class="mb-4
-    {% if user_theme == 'dark' %}text-gray-300{% elif user_theme == 'blue' %}text-blue-200{% elif user_theme == 'green' %}text-green-200{% else %}text-gray-600{% endif %}">{{ _('Use um dos seus modelos salvos para começar mais rápido.') }}</p>
-        <button class="inline-flex items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200
-    {% if user_theme == 'dark' %}text-gray-100 bg-gray-800 hover:bg-gray-900 border-gray-700 focus:ring-indigo-400
-    {% elif user_theme == 'blue' %}text-blue-100 bg-blue-800 hover:bg-blue-900 border-blue-700 focus:ring-blue-400
-    {% elif user_theme == 'green' %}text-green-100 bg-green-800 hover:bg-green-900 border-green-700 focus:ring-green-400
-    {% else %}text-gray-700 bg-white hover:bg-gray-50 border-gray-300 focus:ring-indigo-500{% endif %}">
-            <i class="fas fa-layer-group mr-2"></i> {{ _('Ver Modelos') }}
-        </button>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="mt-8 bg-white rounded-lg shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Atividade Recente</h2>
-    </div>
-    <div class="divide-y divide-gray-200">
-        {% if briefs and briefs|length > 0 %}
-            {% for brief in briefs[:5] %}
-            <div class="px-6 py-4 flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <i class="fas fa-file-import text-indigo-600"></i>
-                    </div>
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                    <i class="fas fa-file-alt text-2xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm text-gray-600">
-                        <span class="font-medium text-gray-900">Você</span> criou um brief <b>{{ brief.brief_type|capitalize }}</b>
-                    </p>
-                    <p class="text-xs text-gray-500">{{ brief.created_at[:10]|replace('-', '/') }}</p>
+                    <p class="text-gray-500 text-sm">Total de Briefs</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_briefs }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-check-circle text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500 text-sm">Concluídos</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.completed_briefs }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-clock text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500 text-sm">Em Andamento</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.in_progress_briefs }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Criar Novo Brief</h3>
+            <p class="text-gray-600 mb-4">Comece um novo brief do zero ou use um dos nossos modelos.</p>
+            <a href="{{ url_for('new_brief') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i> Novo Brief
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Modelos Salvos</h3>
+            <p class="text-gray-600 mb-4">Use um dos seus modelos salvos para começar mais rápido.</p>
+            <a href="{{ url_for('my_briefs') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-layer-group mr-2"></i> Ver Modelos
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Atividade Recente</h2>
+        {% if recent_activity %}
+        <div class="space-y-4">
+            {% for activity in recent_activity %}
+            <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                <div class="flex-shrink-0">
+                    {% if 'concluído' in activity.description %}
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    {% else %}
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    {% endif %}
+                </div>
+                <div class="ml-4 flex-1">
+                    <p class="text-sm font-medium text-gray-900">{{ activity.description }}</p>
+                    <p class="text-sm text-gray-500">{{ activity.timestamp }}</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <a href="{{ url_for('view_brief', brief_id=activity.brief_id) }}" class="btn btn-link text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-eye"></i>
+                    </a>
                 </div>
             </div>
             {% endfor %}
+        </div>
         {% else %}
-            <div class="px-6 py-4 text-gray-500">Nenhuma atividade recente.</div>
+        <div class="text-center py-8">
+            <i class="fas fa-history text-gray-400 text-4xl mb-4"></i>
+            <p class="text-gray-500">Nenhuma atividade recente.</p>
+            <a href="{{ url_for('new_brief') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i> Criar Novo Brief
+            </a>
+        </div>
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa todos os dropdowns do Bootstrap
+    var dropdowns = document.querySelectorAll('.dropdown-toggle');
+    dropdowns.forEach(function(dropdown) {
+        dropdown.addEventListener('click', function(e) {
+            e.preventDefault();
+            var menu = this.nextElementSibling;
+            menu.classList.toggle('show');
+        });
+    });
+
+    // Fecha o dropdown quando clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.matches('.dropdown-toggle')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                menu.classList.remove('show');
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

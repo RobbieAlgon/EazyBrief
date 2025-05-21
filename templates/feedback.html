@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - EazyBrief{% endblock %}
+
+{% block page_title %}Feedback{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-6">Envie seu Feedback</h2>
+            
+            <form id="feedbackForm" class="space-y-6">
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Tipo de Feedback</label>
+                    <select id="type" name="type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Selecione o tipo</option>
+                        <option value="suggestion">Sugestão</option>
+                        <option value="bug">Reportar Bug</option>
+                        <option value="praise">Elogio</option>
+                        <option value="other">Outro</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                    <input type="text" id="title" name="title" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="Resumo do seu feedback">
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                    <textarea id="description" name="description" required rows="4"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              placeholder="Descreva seu feedback em detalhes..."></textarea>
+                </div>
+
+                <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Prioridade</label>
+                    <select id="priority" name="priority" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="low">Baixa</option>
+                        <option value="medium">Média</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="contact" class="block text-sm font-medium text-gray-700 mb-2">Email para contato (opcional)</label>
+                    <input type="email" id="contact" name="contact"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="Seu email para contato">
+                </div>
+
+                <div id="messageBox" class="hidden p-4 rounded-md mb-4"></div>
+
+                <button type="submit" 
+                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Enviar Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const messageBox = document.getElementById('messageBox');
+    messageBox.className = 'hidden';
+    
+    const formData = {
+        type: document.getElementById('type').value,
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        priority: document.getElementById('priority').value,
+        contact: document.getElementById('contact').value
+    };
+
+    try {
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            messageBox.className = 'bg-green-100 text-green-700 p-4 rounded-md mb-4';
+            messageBox.textContent = 'Feedback enviado com sucesso! Obrigado por nos ajudar a melhorar.';
+            this.reset();
+        } else {
+            messageBox.className = 'bg-red-100 text-red-700 p-4 rounded-md mb-4';
+            messageBox.textContent = data.error || 'Erro ao enviar feedback. Por favor, tente novamente.';
+        }
+    } catch (error) {
+        messageBox.className = 'bg-red-100 text-red-700 p-4 rounded-md mb-4';
+        messageBox.textContent = 'Erro ao enviar feedback. Por favor, tente novamente.';
+    }
+});
+</script>
+{% endblock %} 

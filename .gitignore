@@ -1,26 +1,62 @@
-# Arquivos e pastas do Python
+# Environment variables
+.env
+.env.*
+
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Ambientes virtuais
-env/
+# Virtual Environment
 venv/
 ENV/
-.venv/
-.ENV/
+env/
 
-# Configurações do VSCode e outros editores
-.vscode/
+# IDE
 .idea/
-*.sublime-project
-*.sublime-workspace
+.vscode/
+*.swp
+*.swo
+
+# Credentials
+firebase_credentials.json
+client_secrets.json
+*.pem
+*.key
+*.crt
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local development
+*.sqlite3
+*.db
 
 # Arquivos temporários
-*.log
 *.tmp
 *.bak
-*.swp
 
 # Arquivos do sistema
 .DS_Store
@@ -32,5 +68,4 @@ Thumbs.db
 # Arquivos de dependência (se for usar requirements.txt ou pipenv)
 Pipfile.lock
 poetry.lock
-firebase_credentials.json
 

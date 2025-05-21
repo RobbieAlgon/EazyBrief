@@ -1,82 +1,126 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Meu Perfil') }} - EazyBrief{% endblock %}
+{% block title %}Perfil - EazyBrief{% endblock %}
 
-{% block page_title %}{{ _('Meu Perfil') }}{% endblock %}
+{% block page_title %}Perfil do Usuário{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto mt-8 rounded-2xl shadow-lg p-6 transition-all duration-300
-    {% if user_theme == 'dark' %}bg-gray-800 border border-gray-700 text-gray-100
-    {% elif user_theme == 'blue' %}bg-blue-900 border border-blue-800 text-blue-100
-    {% elif user_theme == 'green' %}bg-green-900 border border-green-800 text-green-100
-    {% else %}bg-white border border-gray-200 text-gray-900{% endif %}">
-    <form method="POST" enctype="multipart/form-data" class="space-y-6">
-        <div class="flex flex-col sm:flex-row items-center mb-6 gap-6">
-            <div class="relative group">
-                {% if user_photo %}
-                    <img src="{{ user_photo }}" class="h-24 w-24 rounded-full object-cover border-4 shadow-lg transition-all duration-300 border-indigo-400 group-hover:scale-105 group-hover:border-indigo-600" alt="Foto de perfil">
-                {% else %}
-                    <div class="h-24 w-24 rounded-full flex items-center justify-center text-4xl shadow-lg transition-all duration-300
-                        {% if user_theme == 'dark' %}bg-gray-700 text-gray-300
-                        {% elif user_theme == 'blue' %}bg-blue-800 text-blue-200
-                        {% elif user_theme == 'green' %}bg-green-800 text-green-200
-                        {% else %}bg-gray-200 text-gray-500{% endif %}">
-                        <i class="fas fa-user"></i>
-                    </div>
-                {% endif %}
-                <div class="absolute -bottom-2 -right-2 bg-indigo-600 text-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-indigo-700 transition-all duration-200">
-                    <i class="fas fa-camera"></i>
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Perfil do Usuário
+                </h3>
+                <div class="mt-5">
+                    <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="display_name" class="block text-sm font-medium text-gray-700">
+                                    Nome
+                                </label>
+                                <div class="mt-1">
+                                    <input type="text" name="display_name" id="display_name" value="{{ user_display_name }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700">
+                                    Email
+                                </label>
+                                <div class="mt-1">
+                                    <input type="email" name="email" id="email" value="{{ user_email }}" disabled class="bg-gray-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700">
+                                    Telefone
+                                </label>
+                                <div class="mt-1">
+                                    <input type="tel" name="phone" id="phone" value="{{ user_phone }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Foto de Perfil
+                                </label>
+                                <div class="mt-1 flex items-center">
+                                    <span class="inline-block h-12 w-12 rounded-full overflow-hidden bg-gray-100">
+                                        {% if user_photo %}
+                                            <img src="{{ user_photo }}" alt="Foto de perfil" class="h-full w-full object-cover">
+                                        {% else %}
+                                            <i class="fas fa-user h-full w-full flex items-center justify-center text-gray-400"></i>
+                                        {% endif %}
+                                    </span>
+                                    <label class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
+                                        <span>Alterar</span>
+                                        <input type="file" name="photo" class="sr-only" accept="image/*">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 border-t border-gray-200 pt-8">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    Informações do Plano
+                                </h3>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Plano Atual</p>
+                                            <p class="text-lg font-semibold {% if user_plan == 'premium' %}text-yellow-600{% elif user_plan == 'pro' %}text-blue-600{% else %}text-gray-600{% endif %}">
+                                                {{ plans[user_plan].name }}
+                                            </p>
+                                        </div>
+                                        {% if user_plan != 'premium' %}
+                                            <a href="{{ url_for('plans') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                                Fazer Upgrade
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    {% if user_plan != 'free' and plan_expiry %}
+                                        <p class="mt-2 text-sm text-gray-500">
+                                            Expira em: {{ plan_expiry }}
+                                        </p>
+                                    {% endif %}
+                                    <div class="mt-4">
+                                        <p class="text-sm font-medium text-gray-900">Recursos Incluídos:</p>
+                                        <ul class="mt-2 space-y-2">
+                                            {% for feature in plans[user_plan].features %}
+                                            <li class="flex items-center text-sm text-gray-600">
+                                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                                {{ feature }}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Salvar alterações
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <div class="w-full">
-                <label class="block text-sm font-medium mb-1
-                    {% if user_theme == 'dark' %}text-gray-200{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-700{% endif %}">
-                    {{ _('Alterar foto de perfil') }}
-                </label>
-                <input type="file" name="photo" accept="image/*" class="mt-1 block w-full text-sm rounded-lg px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-indigo-500
-                    {% if user_theme == 'dark' %}bg-gray-900 border-gray-700 text-gray-100 placeholder-gray-400
-                    {% elif user_theme == 'blue' %}bg-blue-950 border-blue-700 text-blue-100 placeholder-blue-300
-                    {% elif user_theme == 'green' %}bg-green-950 border-green-700 text-green-100 placeholder-green-300
-                    {% else %}bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-400{% endif %}">
-            </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="block text-sm font-bold mb-1
-                    {% if user_theme == 'dark' %}text-gray-200{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-700{% endif %}">{{ _('Nome') }}</label>
-                <input type="text" name="display_name" value="{{ user_display_name }}" required
-                    class="form-input w-full rounded-lg px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-indigo-500
-                    {% if user_theme == 'dark' %}bg-gray-900 border-gray-700 text-gray-100 placeholder-gray-400
-                    {% elif user_theme == 'blue' %}bg-blue-950 border-blue-700 text-blue-100 placeholder-blue-300
-                    {% elif user_theme == 'green' %}bg-green-950 border-green-700 text-green-100 placeholder-green-300
-                    {% else %}bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-400{% endif %}">
-            </div>
-            <div>
-                <label class="block text-sm font-bold mb-1
-                    {% if user_theme == 'dark' %}text-gray-200{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-700{% endif %}">{{ _('Email') }}</label>
-                <input type="email" name="email" value="{{ user_email }}" readonly
-                    class="form-input w-full rounded-lg px-3 py-2 border bg-opacity-60 cursor-not-allowed
-                    {% if user_theme == 'dark' %}bg-gray-800 border-gray-700 text-gray-400
-                    {% elif user_theme == 'blue' %}bg-blue-800 border-blue-700 text-blue-300
-                    {% elif user_theme == 'green' %}bg-green-800 border-green-700 text-green-300
-                    {% else %}bg-gray-100 border-gray-300 text-gray-400{% endif %}">
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm font-bold mb-1
-                    {% if user_theme == 'dark' %}text-gray-200{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-700{% endif %}">{{ _('Telefone') }}</label>
-                <input type="text" name="phone" value="{{ user_phone }}"
-                    class="form-input w-full rounded-lg px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-indigo-500
-                    {% if user_theme == 'dark' %}bg-gray-900 border-gray-700 text-gray-100 placeholder-gray-400
-                    {% elif user_theme == 'blue' %}bg-blue-950 border-blue-700 text-blue-100 placeholder-blue-300
-                    {% elif user_theme == 'green' %}bg-green-950 border-green-700 text-green-100 placeholder-green-300
-                    {% else %}bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-400{% endif %}">
-            </div>
-        </div>
-        <div class="flex justify-end mt-8">
-            <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-base font-semibold rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">
-                <i class="fas fa-save mr-2"></i>{{ _('Salvar Alterações') }}
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
+
+<script>
+    // Preview da imagem selecionada
+    document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.rounded-full img').src = e.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+</script>
 {% endblock %}

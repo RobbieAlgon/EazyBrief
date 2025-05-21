@@ -1,181 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ _('Login') }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .login-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-        }
-        .login-container h2 {
-            margin-bottom: 20px;
-        }
-        .login-container input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .login-container button {
-            width: 100%;
-            padding: 10px;
-            background-color: #1877f2;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .login-container button:hover {
-            background-color: #165db7;
-        }
-        .google-btn {
-            background-color: #4285F4;
-            margin-top: 10px;
-        }
-        .google-btn:hover {
-            background-color: #3578e5;
-        }
-        .flash-messages {
-            margin-bottom: 20px;
-        }
-        .flash-messages .alert {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 4px;
-        }
-        .flash-messages .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .flash-messages .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .flash-messages .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .flash-messages .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-        .resend-link {
-            display: block;
-            margin-top: 10px;
-            color: #1877f2;
-            text-decoration: none;
-        }
-        .resend-link:hover {
-            text-decoration: underline;
-        }
-        .signup-link {
-            margin-top: 15px;
-            display: block;
-            color: #1877f2;
-            text-decoration: none;
-        }
-        .signup-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2>{{ _('Login') }}</h2>
-        <div class="flash-messages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+{% extends "base.html" %}
+
+{% block title %}Login - EazyBrief{% endblock %}
+
+{% block page_title %}Login{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Entrar na sua conta
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Ou
+                <a href="{{ url_for('signup') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    criar uma nova conta
+                </a>
+            </p>
         </div>
-        <form method="POST" action="{{ url_for('login') }}">
-            <input type="email" name="email" placeholder="{{ _('Email') }}" value="{{ email if email else '' }}" required>
-            <input type="password" name="password" placeholder="{{ _('Senha') }}" required>
-            <button type="submit">{{ _('Entrar') }}</button>
-            {% if show_resend_button %}
-                <a href="#" class="resend-link">{{ _('Reenviar e-mail de verificação') }}</a>
-                <input type="hidden" id="resend-verification" name="resend_verification" value="false">
-            {% endif %}
+        <form class="mt-8 space-y-6" action="{{ url_for('login') }}" method="POST">
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="email" class="sr-only">Email</label>
+                    <input id="email" name="email" type="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email">
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Senha</label>
+                    <input id="password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Senha">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="text-sm">
+                    <a href="{{ url_for('reset_password') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                        Esqueceu sua senha?
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </span>
+                    Entrar
+                </button>
+            </div>
         </form>
-        <button type="button" id="googleLoginBtn" class="google-btn">{{ _('Entrar com Google') }}</button>
-        <a href="{{ url_for('signup') }}" class="signup-link">{{ _('Não tem uma conta? Cadastre-se') }}</a>
-        <a href="{{ url_for('reset_password') }}" class="signup-link">{{ _('Esqueceu sua senha?') }}</a>
+
+        <div class="mt-6">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">
+                        Ou continue com
+                    </span>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <img src="{{ url_for('static', filename='images/google-logo.png') }}" alt="Google" class="h-5 w-5 mr-2">
+                    Entrar com Google
+                </button>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script type="module">
-        // Importa os módulos do Firebase
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDoXb68C_gGm33Ni29UohqHy84IpJHZ-Yc",
-            authDomain: "brief-generator-5c33f.firebaseapp.com",
-            projectId: "brief-generator-5c33f",
-            storageBucket: "brief-generator-5c33f.firebasestorage.app",
-            messagingSenderId: "810916567820",
-            appId: "1:810916567820:web:9f28505921b3d75f7b4729"
+            apiKey: "{{ config['FIREBASE_API_KEY'] }}",
+            authDomain: "{{ config['FIREBASE_AUTH_DOMAIN'] }}",
+            projectId: "{{ config['FIREBASE_PROJECT_ID'] }}",
+            storageBucket: "{{ config['FIREBASE_STORAGE_BUCKET'] }}",
+            messagingSenderId: "{{ config['FIREBASE_MESSAGING_SENDER_ID'] }}",
+            appId: "{{ config['FIREBASE_APP_ID'] }}"
         };
 
-        // Inicializa o Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Configurar o provedor do Google
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
 
         // Função para login com Google
         window.signInWithGoogle = function() {
-            const provider = new GoogleAuthProvider();
-            provider.addScope('email profile');
-            signInWithPopup(auth, provider)
+            firebase.auth().signInWithPopup(provider)
                 .then((result) => {
-                    const user = result.user;
-                    // Envia o idToken para o backend
-                    user.getIdToken().then(idToken => {
-                        fetch('/google/callback', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ idToken })
+                    // Obter o token de ID do Firebase
+                    return result.user.getIdToken();
+                })
+                .then((idToken) => {
+                    // Enviar o token para o backend
+                    return fetch('/google/callback', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            idToken: idToken
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                window.location.href = '/dashboard';
-                            } else {
-                                alert('Erro ao autenticar com Google: ' + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erro:', error);
-                            alert('Erro ao comunicar com o servidor.');
-                        });
                     });
                 })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/dashboard';
+                    } else {
+                        alert('Erro ao fazer login com Google: ' + data.message);
+                    }
+                })
                 .catch((error) => {
-                    console.error('Erro no login com Google:', error);
-                    alert('Erro ao autenticar com Google: ' + error.message);
+                    console.error('Erro:', error);
+                    alert('Erro ao fazer login com Google. Por favor, tente novamente.');
                 });
         };
-    document.getElementById('googleLoginBtn').onclick = window.signInWithGoogle;
+    });
 </script>
-</body>
-</html>
+{% endblock %}

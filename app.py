@@ -282,7 +282,10 @@ except Exception as e:
     raise ValueError(f"Erro ao inicializar Firebase Admin: {str(e)}")
 
 # Configuração do Groq
-groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+groq_client = Groq(
+    api_key=os.getenv('GROQ_API_KEY'),
+    base_url="https://api.groq.com/v1"
+)
 
 # Filtro markdown
 @app.template_filter('markdown')

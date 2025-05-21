@@ -70,7 +70,7 @@ python-jwt==4.1.0
 reportlab==4.0.4
 stripe==8.9.0
 Flask-Mail==0.9.1
-requests==2.31.0
+requests==2.29.0
 requests-toolbelt==0.10.1
 rsa==4.9.1
 six==1.17.0

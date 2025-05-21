@@ -1,76 +1,74 @@
-# EazyBrief
+# Brief Generator
 
-EazyBrief é uma plataforma que simplifica a criação de briefings profissionais usando inteligência artificial.
+A web application for generating professional briefs using AI. Built with Flask and integrated with various services including Firebase, Stripe, and Groq.
 
-## Funcionalidades
+## Features
 
-- Criação rápida de briefings usando IA
-- Múltiplos templates disponíveis
-- Exportação em diferentes formatos (PDF, DOCX, TXT, HTML)
-- Sistema de planos (Free, Pro, Premium)
-- Integração com Stripe para pagamentos
-- Dashboard personalizado
-- Histórico de briefings
+- User authentication and authorization
+- AI-powered brief generation
+- Multiple export formats (PDF, DOCX, TXT, HTML)
+- Subscription plans with Stripe integration
+- Firebase integration for data storage
+- Integration with various services (Google Drive, Trello, Slack, Microsoft Teams)
 
-## Tecnologias Utilizadas
+## Setup
 
-- Python/Flask
-- Firebase (Autenticação, Database, Storage)
-- Stripe (Pagamentos)
-- Google Cloud (Vertex AI)
-- Groq (LLM)
-
-## Configuração do Ambiente
-
-1. Clone o repositório:
+1. Clone the repository:
 ```bash
-git clone https://github.com/RobbieAlgon/EazyBrief.git
-cd EazyBrief
+git clone <repository-url>
+cd brief-generator
 ```
 
-2. Crie um ambiente virtual e instale as dependências:
+2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-3. Configure as variáveis de ambiente:
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+4. Create a `.env` file with the following variables:
 ```
-FLASK_SECRET_KEY=sua_chave_secreta
-FIREBASE_API_KEY=sua_chave_api
-FIREBASE_AUTH_DOMAIN=seu_dominio
-FIREBASE_DATABASE_URL=sua_url
-FIREBASE_PROJECT_ID=seu_projeto
-FIREBASE_STORAGE_BUCKET=seu_bucket
-FIREBASE_MESSAGING_SENDER_ID=seu_sender_id
-FIREBASE_APP_ID=seu_app_id
-FIREBASE_CREDENTIALS_JSON=seu_json_credenciais
-STRIPE_SECRET_KEY=sua_chave_stripe
-STRIPE_PUBLISHABLE_KEY=sua_chave_publica
-STRIPE_PRO_PRICE_ID=seu_price_id
-STRIPE_PREMIUM_PRICE_ID=seu_price_id
-STRIPE_WEBHOOK_SECRET=seu_webhook_secret
-GCP_PROJECT_ID=seu_projeto_gcp
-GROQ_API_KEY=sua_chave_groq
+FLASK_SECRET_KEY=your_secret_key
+FIREBASE_API_KEY=your_firebase_api_key
+FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+FIREBASE_DATABASE_URL=your_firebase_database_url
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+FIREBASE_APP_ID=your_firebase_app_id
+FIREBASE_CREDENTIALS_JSON=your_firebase_credentials_json
+GROQ_API_KEY=your_groq_api_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+STRIPE_PRO_PRICE_ID=your_stripe_pro_price_id
+STRIPE_PREMIUM_PRICE_ID=your_stripe_premium_price_id
 ```
 
-4. Execute a aplicação:
+5. Run the application:
 ```bash
 python app.py
 ```
 
-## Deploy
+## Environment Variables
 
-O projeto está configurado para deploy na Vercel. Para fazer o deploy:
+- `FLASK_SECRET_KEY`: Secret key for Flask session management
+- `FIREBASE_*`: Firebase configuration and credentials
+- `GROQ_API_KEY`: API key for Groq AI service
+- `STRIPE_*`: Stripe configuration for payment processing
 
-1. Faça push do código para o GitHub
-2. Conecte seu repositório na Vercel
-3. Configure as variáveis de ambiente na Vercel
-4. Deploy!
+## Contributing
 
-## Licença
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes. 
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details. 

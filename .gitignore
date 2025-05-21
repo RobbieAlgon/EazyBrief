@@ -8,6 +8,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -27,7 +28,6 @@ wheels/
 # Virtual Environment
 venv/
 ENV/
-env/
 
 # IDE
 .idea/
@@ -44,7 +44,6 @@ client_secrets.json
 
 # Logs
 *.log
-logs/
 
 # OS
 .DS_Store
@@ -68,4 +67,19 @@ Thumbs.db
 # Arquivos de dependência (se for usar requirements.txt ou pipenv)
 Pipfile.lock
 poetry.lock
+
+# Local development
+instance/
+.webassets-cache
+
+# Firebase
+firebase-credentials.json
+firebase-debug.log
+
+# Stripe
+stripe-credentials.json
+
+# Misc
+.DS_Store
+Thumbs.db
 

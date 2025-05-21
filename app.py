@@ -4,7 +4,7 @@ load_dotenv()  # Carrega variáveis do .env
 
 import json
 import base64
-import datetime
+from datetime import datetime, timedelta, timezone
 import tempfile
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, Response
 import firebase_admin
@@ -14,6 +14,102 @@ from functools import wraps
 import uuid
 import requests
 import logging
+from groq import Groq
+from werkzeug.utils import secure_filename
+from markupsafe import Markup
+import markdown
+import stripe
+import subprocess
+import platform
+
+# Função para sincronizar o horário do sistema
+def sync_system_time():
+    try:
+        # Usa apenas o timeapi.io com formato específico
+        time_server = 'https://timeapi.io/api/Time/current/zone/UTC'
+        
+        try:
+            response = requests.get(time_server, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                # Extrai os componentes da data/hora
+                year = data.get('year')
+                month = data.get('month')
+                day = data.get('day')
+                hour = data.get('hour')
+                minute = data.get('minute')
+                second = data.get('seconds')
+                
+                if all(v is not None for v in [year, month, day, hour, minute, second]):
+                    # Constrói a data/hora manualmente
+                    server_time = datetime(year, month, day, hour, minute, second, tzinfo=timezone.utc)
+                    
+                    # Converte o horário do sistema para UTC
+                    system_time = datetime.now(timezone.utc)
+                    
+                    # Calcula a diferença de tempo
+                    time_diff = abs((server_time - system_time).total_seconds())
+                    
+                    if time_diff > 60:  # Se a diferença for maior que 1 minuto
+                        logging.warning(f'Diferença de horário detectada: {time_diff} segundos')
+                        logging.warning('Por favor, sincronize o horário do seu sistema manualmente:')
+                        logging.warning('1. Clique com o botão direito no relógio do Windows')
+                        logging.warning('2. Selecione "Ajustar data/hora"')
+                        logging.warning('3. Clique em "Sincronizar agora"')
+                        return False
+                    
+                    logging.info('Horário do sistema está sincronizado')
+                    return True
+                    
+        except Exception as e:
+            logging.warning(f'Erro ao tentar servidor {time_server}: {str(e)}')
+        
+        logging.error('Não foi possível obter o horário do servidor')
+        return False
+        
+    except Exception as e:
+        logging.error(f'Erro ao sincronizar horário: {str(e)}')
+        return False
+
+# Configuração do Flask
+app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Sessão dura 7 dias
+
+# Configuração de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+# Sincroniza o horário antes de iniciar a aplicação
+if not sync_system_time():
+    logging.warning('Não foi possível sincronizar o horário do sistema. O login com Google pode não funcionar corretamente.')
+
+import json
+import base64
+from datetime import datetime, timedelta
+import tempfile
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, Response
+import firebase_admin
+from firebase_admin import credentials, auth, db, storage
+import pyrebase
+from functools import wraps
+import uuid
+import requests
+import logging
+from groq import Groq
+from werkzeug.utils import secure_filename
+from markupsafe import Markup
+import markdown
+import stripe
+from datetime import datetime
+from flask import send_file
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from docx import Document
+from docx.shared import Pt
+from flask import jsonify
 
 # Inicialização do Pyrebase para autenticação de usuário final
 firebase_config = {
@@ -27,18 +123,6 @@ firebase_config = {
 }
 pyrebase_app = pyrebase.initialize_app(firebase_config)
 pyre_auth = pyrebase_app.auth()
-
-from google.cloud import aiplatform
-from google.cloud.aiplatform_v1.types import GenerateContentRequest, Content, Part
-from groq import Groq
-from werkzeug.utils import secure_filename
-from markupsafe import Markup
-import markdown
-
-# Configuração do Flask
-app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY')
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)  # Sessão dura 7 dias
 
 # Configuração dos planos e limites
 PLANS = {
@@ -101,7 +185,6 @@ PLANS = {
     }
 }
 
-import stripe
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 stripe_publishable_key = os.getenv('STRIPE_PUBLISHABLE_KEY')
 if not stripe.api_key or not stripe_publishable_key:
@@ -197,9 +280,6 @@ except json.JSONDecodeError:
     raise ValueError("FIREBASE_CREDENTIALS_JSON contém JSON inválido")
 except Exception as e:
     raise ValueError(f"Erro ao inicializar Firebase Admin: {str(e)}")
-
-# Configuração do Vertex AI
-aiplatform.init(project=os.getenv('GCP_PROJECT_ID', 'global-wharf-456714-k9'), location='us-central1')
 
 # Configuração do Groq
 groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
@@ -315,6 +395,10 @@ def login():
 @app.route('/google/callback', methods=['POST'])
 def google_callback():
     try:
+        # Verifica e sincroniza o horário antes de processar o callback
+        if not sync_system_time():
+            logging.warning('Não foi possível sincronizar o horário do sistema')
+        
         id_token = request.json.get('idToken')
         if not id_token:
             return jsonify({'success': False, 'message': 'Token não fornecido'})
@@ -341,7 +425,7 @@ def google_callback():
         
         return jsonify({'success': True})
     except Exception as e:
-        print(f'Erro no callback do Google: {str(e)}')
+        logging.error(f'Erro no callback do Google: {str(e)}')
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/google/login')
@@ -686,125 +770,51 @@ def inject_user_theme():
 
 @app.route('/api/generate-brief', methods=['POST'])
 def api_generate_brief():
-    # Verificar se request está disponível
-    if not request:
-        return jsonify({'error': 'Objeto request não disponível.'}), 500
+    if not request.is_json:
+        return jsonify({'error': 'Content-Type deve ser application/json'}), 400
 
-    # Checar limites de plano
-    if 'user' not in session and 'user_email' not in session:
-        return jsonify({'error': 'Faça login para gerar briefs.'}), 401
-    user_id = get_user_id()
-    if not can_create_brief(user_id):
-        return jsonify({'error': 'Você atingiu o limite do seu plano. Faça upgrade para continuar.', 'upgrade_url': url_for('plans')}), 403
+    data = request.get_json()
+    text = data.get('text', '')
+    brief_type = data.get('brief_type', '')
+    template = data.get('template', '')
+    extras = data.get('extras', {})
+    image_data_url = data.get('image_data_url', '')
+    model_choice = data.get('model_choice', 'llama')  # Default to llama since we removed gemini
 
-    # Suporte a JSON e FormData
-    if request.content_type and request.content_type.startswith('multipart/form-data'):
-        text = request.form.get('text', '')
-        brief_type = request.form.get('type', 'custom')
-        template = request.form.get('template', 'classic')
-        extras = json.loads(request.form.get('extras', '[]') or '[]')
-        image_data_url = request.form.get('image', '')
-        audio_file = request.files.get('audio')
-        model_choice = request.form.get('model', 'gemini')
-    else:
-        data = request.get_json() or {}
-        text = data.get('text', '')
-        brief_type = data.get('type', 'custom')
-        template = data.get('template', 'classic')
-        extras = data.get('extras', [])
-        image_data_url = data.get('image', '')
-        audio_file = None
-        model_choice = data.get('model', 'gemini')
-
-    # Validação de entrada
-    if not text and not image_data_url and not audio_file:
-        return jsonify({'error': 'Texto, imagem ou áudio obrigatórios.'}), 400
-    if image_data_url and not isinstance(image_data_url, str):
-        return jsonify({'error': 'URL da imagem inválida.'}), 400
-    if image_data_url and not image_data_url.startswith(('http', 'data:image')):
-        return jsonify({'error': 'URL da imagem deve ser um link HTTP ou data URL.'}), 400
-
-    # Transcrição de áudio
-    if audio_file:
-        try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_audio:
-                audio_path = temp_audio.name
-                audio_file.save(audio_path)
-                with open(audio_path, 'rb') as f:
-                    transcription = groq_client.audio.transcriptions.create(
-                        file=(audio_file.filename, f.read()),
-                        model="whisper-large-v3",
-                        response_format="verbose_json",
-                    )
-                text = transcription.text.strip()
-            os.remove(audio_path)
-        except Exception as e:
-            return jsonify({'error': f'Erro ao transcrever áudio: {str(e)}'}), 500
-
-    # Montar campos extras
-    extras_str = '\n'.join([f"{item.get('name', '')}: {item.get('value', '')}" for item in extras])
-
-    # Configurar template
-    template_str = {
-        'classic': "\nGere o briefing no formato clássico, com tópicos claros, objetivos, público-alvo, entregáveis, prazo e informações relevantes.",
-        'visual': "\nGere o briefing com uma estrutura visual, use listas, destaques e elementos que facilitem a leitura rápida.",
-        'minimal': "\nGere um briefing minimalista, apenas os pontos essenciais, direto ao ponto, sem enfeites."
-    }.get(template, "")
-
-    # Montar prompt
+    # Construir o prompt
+    extras_str = '\n'.join([f"{k}: {v}" for k, v in extras.items()])
     prompt_text = (
-        f"Você é um assistente especialista em criar briefings profissionais. "
-        f"Recebe o texto bruto de um cliente e transforma em um briefing único, visualmente atraente, objetivo e pronto para ser usado por um profissional da área de {brief_type}.{template_str}\n"
-        f"\nTexto do cliente:\n{text}\n"
+        f"Tipo de Briefing: {brief_type}\n"
+        f"Template: {template}\n"
+        f"Texto do cliente:\n{text}\n"
         f"\nCampos adicionais fornecidos pelo cliente:\n{extras_str}\n"
         "\nGere o briefing de acordo com as informações acima. Seja criativo, use formatação, listas, títulos e destaque pontos importantes."
     )
 
     try:
-        if model_choice == 'gemini':
-            from google.cloud.aiplatform_v1 import PredictionServiceClient
-            from google.cloud.aiplatform_v1.types import GenerateContentRequest, Content, Part
-
-            client = PredictionServiceClient()
-            endpoint = f"projects/{os.getenv('GCP_PROJECT_ID')}/locations/us-central1/publishers/google/models/gemini-1.5-pro"
-            parts = [Part(text=prompt_text)]
-            if image_data_url and ',' in image_data_url:
-                parts.append(Part(inline_data={"mime_type": "image/jpeg", "data": image_data_url.split(',')[1]}))
-            request_obj = GenerateContentRequest(
-                model=endpoint,
-                contents=[Content(role="user", parts=parts)],
-                generation_config={
-                    "temperature": 1.0,
-                    "top_p": 0.95,
-                    "max_output_tokens": 1024
-                }
-            )
-            response = client.generate_content(request_obj)
-            result = response.candidates[0].content.parts[0].text
-        else:  # Llama
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt_text}
-                    ] + (
-                        [{"type": "image_url", "image_url": {"url": image_data_url}}]
-                        if image_data_url and isinstance(image_data_url, str) and image_data_url.startswith(('http', 'data:image'))
-                        else []
-                    )
-                }
-            ]
-            print(f"Mensagens enviadas: {json.dumps(messages, indent=2)}")  # Log para depuração
-            model_name = "meta-llama/llama-4-maverick-17b-128e-instruct" if image_data_url else "meta-llama/llama-4-scout-17b-16e-instruct"
-            completion = groq_client.chat.completions.create(
-                model=model_name,
-                messages=messages,
-                temperature=0.7,
-                max_tokens=1024,
-                top_p=1,
-                stream=False,
-            )
-            result = completion.choices[0].message.content
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt_text}
+                ] + (
+                    [{"type": "image_url", "image_url": {"url": image_data_url}}]
+                    if image_data_url and isinstance(image_data_url, str) and image_data_url.startswith(('http', 'data:image'))
+                    else []
+                )
+            }
+        ]
+        print(f"Mensagens enviadas: {json.dumps(messages, indent=2)}")  # Log para depuração
+        model_name = "meta-llama/llama-4-maverick-17b-128e-instruct" if image_data_url else "meta-llama/llama-4-scout-17b-16e-instruct"
+        completion = groq_client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=1,
+            stream=False,
+        )
+        result = completion.choices[0].message.content
 
         # Salvar no Firebase
         user_id = get_user_id()
@@ -825,10 +835,6 @@ def api_generate_brief():
         return jsonify({'result': result, 'html': html})
     except Exception as e:
         return jsonify({'error': f'Erro ao gerar briefing: {str(e)}'}), 500
-
-from flask import send_file
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 
 @app.route('/brief/<brief_id>/export/pdf')
 def export_brief_pdf(brief_id):
@@ -873,9 +879,6 @@ def export_brief_pdf(brief_id):
     p.save()
     buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name=f"brief_{brief_id}.pdf", mimetype='application/pdf')
-
-from docx import Document
-from docx.shared import Pt
 
 @app.route('/brief/<brief_id>/export/docx')
 def export_brief_docx(brief_id):
@@ -955,8 +958,6 @@ def export_brief_html(brief_id):
     from io import BytesIO
     buffer = BytesIO(html_content.encode('utf-8'))
     return send_file(buffer, as_attachment=True, download_name=f"brief_{brief_id}.html", mimetype='text/html')
-
-from flask import jsonify
 
 @app.route('/plans')
 def plans():
@@ -2034,4 +2035,4 @@ def oauth2callback():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

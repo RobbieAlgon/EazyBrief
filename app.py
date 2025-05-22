@@ -282,10 +282,11 @@ except Exception as e:
     raise ValueError(f"Erro ao inicializar Firebase Admin: {str(e)}")
 
 # Configuração do Groq
-groq_client = Groq(
-    api_key=os.getenv('GROQ_API_KEY'),
-    base_url="https://api.groq.com/v1"
-)
+api_key = os.getenv('GROQ_API_KEY')
+print(f"API Key carregada: {'Sim' if api_key else 'Não'}")  # Debug
+print(f"API Key: {api_key[:10]}...")  # Mostra apenas os primeiros 10 caracteres por segurança
+
+groq_client = Groq(api_key=api_key)
 
 # Filtro markdown
 @app.template_filter('markdown')
@@ -776,47 +777,142 @@ def api_generate_brief():
     if not request.is_json:
         return jsonify({'error': 'Content-Type deve ser application/json'}), 400
 
-    data = request.get_json()
-    text = data.get('text', '')
-    brief_type = data.get('brief_type', '')
-    template = data.get('template', '')
-    extras = data.get('extras', {})
-    image_data_url = data.get('image_data_url', '')
-    model_choice = data.get('model_choice', 'llama')  # Default to llama since we removed gemini
-
-    # Construir o prompt
-    extras_str = '\n'.join([f"{k}: {v}" for k, v in extras.items()])
-    prompt_text = (
-        f"Tipo de Briefing: {brief_type}\n"
-        f"Template: {template}\n"
-        f"Texto do cliente:\n{text}\n"
-        f"\nCampos adicionais fornecidos pelo cliente:\n{extras_str}\n"
-        "\nGere o briefing de acordo com as informações acima. Seja criativo, use formatação, listas, títulos e destaque pontos importantes."
-    )
-
     try:
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt_text}
-                ] + (
-                    [{"type": "image_url", "image_url": {"url": image_data_url}}]
-                    if image_data_url and isinstance(image_data_url, str) and image_data_url.startswith(('http', 'data:image'))
-                    else []
-                )
-            }
-        ]
-        print(f"Mensagens enviadas: {json.dumps(messages, indent=2)}")  # Log para depuração
-        model_name = "meta-llama/llama-4-maverick-17b-128e-instruct" if image_data_url else "meta-llama/llama-4-scout-17b-16e-instruct"
+        data = request.get_json()
+        text = data.get('text', '')
+        brief_type = data.get('type')
+        template = data.get('template')
+        extras = data.get('extras', [])
+        image_data = data.get('image')
+        audio_data = data.get('audio')
+
+        # Validar campos obrigatórios
+        if not brief_type or not template:
+            return jsonify({'error': 'Tipo e template são obrigatórios'}), 400
+
+        # Processar áudio se fornecido
+        audio_text = ''
+        audio_url = ''
+        if audio_data:
+            try:
+                # Decodificar o áudio base64
+                audio_content = base64.b64decode(audio_data.split(',')[1])
+                
+                # Salvar temporariamente
+                temp_audio_path = os.path.join(tempfile.gettempdir(), 'temp_audio.m4a')
+                with open(temp_audio_path, 'wb') as f:
+                    f.write(audio_content)
+
+                # Transcrever usando a API do Groq
+                with open(temp_audio_path, 'rb') as f:
+                    transcription = groq_client.audio.transcriptions.create(
+                        file=(temp_audio_path, f.read()),
+                        model="whisper-large-v3-turbo",
+                        response_format="verbose_json"
+                    )
+                    audio_text = transcription.text
+
+                # Upload para o Firebase Storage
+                bucket = storage.bucket()
+                audio_blob = bucket.blob(f'audio/{uuid.uuid4()}.m4a')
+                audio_blob.upload_from_filename(temp_audio_path)
+                audio_blob.make_public()
+                audio_url = audio_blob.public_url
+
+                # Limpar arquivo temporário
+                os.remove(temp_audio_path)
+            except Exception as e:
+                print(f"Erro ao processar áudio: {str(e)}")
+                return jsonify({'error': 'Erro ao processar áudio'}), 500
+
+        # Processar imagem se fornecida
+        image_url = ''
+        image_analysis = ''
+        if image_data:
+            try:
+                # Decodificar a imagem base64
+                image_content = base64.b64decode(image_data.split(',')[1])
+                
+                # Salvar temporariamente
+                temp_image_path = os.path.join(tempfile.gettempdir(), 'temp_image.jpg')
+                with open(temp_image_path, 'wb') as f:
+                    f.write(image_content)
+
+                # Upload para o Firebase Storage
+                bucket = storage.bucket()
+                image_blob = bucket.blob(f'images/{uuid.uuid4()}.jpg')
+                image_blob.upload_from_filename(temp_image_path)
+                image_blob.make_public()
+                image_url = image_blob.public_url
+
+                # Analisar imagem usando o modelo maverick
+                with open(temp_image_path, 'rb') as f:
+                    image_analysis = groq_client.chat.completions.create(
+                        model="meta-llama/llama-4-maverick-17b-128e-instruct",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "Você é um assistente especializado em análise de imagens para briefings. Analise a imagem fornecida e extraia informações relevantes para um briefing profissional."
+                            },
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Analise esta imagem e extraia informações relevantes para um briefing profissional. Inclua detalhes sobre cores, composição, elementos visuais e qualquer outro aspecto importante."
+                                    },
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": image_url
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    ).choices[0].message.content
+
+                # Limpar arquivo temporário
+                os.remove(temp_image_path)
+            except Exception as e:
+                print(f"Erro ao processar imagem: {str(e)}")
+                return jsonify({'error': 'Erro ao processar imagem'}), 500
+
+        # Construir o prompt combinando todas as informações
+        prompt = f"""Crie um briefing profissional baseado nas seguintes informações:
+
+Tipo de Briefing: {brief_type}
+Template: {template}
+
+Texto do Cliente:
+{text}
+
+Transcrição do Áudio:
+{audio_text}
+
+Análise da Imagem:
+{image_analysis}
+
+Campos Extras:
+{json.dumps(extras, indent=2, ensure_ascii=False)}
+
+Por favor, crie um briefing detalhado e profissional que incorpore todas essas informações de forma coesa e estruturada."""
+
+        # Gerar o briefing usando o modelo scout
         completion = groq_client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            temperature=0.7,
-            max_tokens=1024,
-            top_p=1,
-            stream=False,
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um assistente especializado em criar briefings profissionais. Seu objetivo é transformar as informações fornecidas em um briefing bem estruturado e detalhado."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         )
+
         result = completion.choices[0].message.content
 
         # Salvar no Firebase
@@ -824,19 +920,22 @@ def api_generate_brief():
         if user_id:
             brief_data = {
                 'text': text,
+                'audio_text': audio_text,
+                'audio_url': audio_url,
+                'image_url': image_url,
+                'image_analysis': image_analysis,
                 'brief_type': brief_type,
                 'template': template,
                 'extras': extras,
-                'image_data_url': image_data_url,
                 'result': result,
                 'created_at': datetime.utcnow().isoformat() + 'Z',
                 'status': 'concluido',
             }
             db.reference(f'briefs/{user_id}').push(brief_data)
 
-        html = f'<pre style="white-space:pre-wrap">{result}</pre>'
-        return jsonify({'result': result, 'html': html})
+        return jsonify({'result': result})
     except Exception as e:
+        print(f"Erro ao gerar briefing: {str(e)}")
         return jsonify({'error': f'Erro ao gerar briefing: {str(e)}'}), 500
 
 @app.route('/brief/<brief_id>/export/pdf')
@@ -1055,6 +1154,19 @@ def upgrade(plan_key):
 
 @app.route('/payment/success')
 def payment_success():
+    user_id = get_user_id()
+    session_id = request.args.get('session_id')
+    if user_id and session_id:
+        try:
+            stripe_session = stripe.checkout.Session.retrieve(session_id)
+            user_data = db.reference(f'users/{user_id}').get() or {}
+            if user_data.get('plan') == stripe_session['metadata']['plan']:
+                flash(f'Plano {PLANS[user_data["plan"]]["name"]} ativado com sucesso!', 'success')
+            else:
+                flash('Plano ainda não atualizado. Por favor, aguarde alguns instantes.', 'warning')
+        except Exception as e:
+            logging.error(f'[Payment Success] Erro ao verificar sessão: {e}')
+            flash('Erro ao verificar pagamento. Entre em contato com o suporte.', 'error')
     return render_template('payment_success.html')
 
 @app.route('/webhook/stripe', methods=['POST'])
@@ -1072,7 +1184,6 @@ def stripe_webhook():
         logging.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET não configurado')
         return 'Webhook secret not configured', 500
         
-    event = None
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
         logging.info(f'[Stripe Webhook] Evento construído com sucesso: {event["type"]}')
@@ -1089,56 +1200,112 @@ def stripe_webhook():
 
     if event['type'] == 'checkout.session.completed':
         session_obj = event['data']['object']
-        user_id = session_obj['metadata']['user_id']
-        plan_key = session_obj['metadata']['plan']
+        user_id = session_obj['metadata'].get('user_id')
+        plan_key = session_obj['metadata'].get('plan')
         
-        logging.info(f'[Stripe Webhook] Processando pagamento para user_id={user_id}, plano={plan_key}')
-        logging.info(f'[Stripe Webhook] Dados da sessão: {session_obj}')
+        logging.info(f'[Stripe Webhook] Metadata: user_id={user_id}, plan_key={plan_key}')
         
+        if not user_id or not plan_key:
+            logging.error(f'[Stripe Webhook] user_id ou plan_key ausentes: user_id={user_id}, plan_key={plan_key}')
+            return 'Missing user_id or plan_key', 400
+            
+        if plan_key not in PLANS:
+            logging.error(f'[Stripe Webhook] Plano inválido: {plan_key}')
+            return 'Invalid plan', 400
+            
         try:
-            expiry = (datetime.utcnow().replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+            expiry = (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1)
             expiry_str = expiry.strftime('%Y-%m-%d')
             
-            # Verificar dados atuais do usuário
-            current_user_data = db.reference(f'users/{user_id}').get() or {}
-            logging.info(f'[Stripe Webhook] Dados atuais do usuário: {current_user_data}')
-            
-            # Atualizar plano no banco de dados
             update_data = {
                 'plan': plan_key,
-                'plan_expiry': expiry_str
+                'plan_expiry': expiry_str,
+                'stripe_subscription_id': session_obj.get('subscription'),
+                'stripe_customer_id': session_obj.get('customer')
             }
             logging.info(f'[Stripe Webhook] Dados a serem atualizados: {update_data}')
             
             db.reference(f'users/{user_id}').update(update_data)
             
-            # Verificar se a atualização foi bem sucedida
             updated_user_data = db.reference(f'users/{user_id}').get() or {}
             logging.info(f'[Stripe Webhook] Dados do usuário após atualização: {updated_user_data}')
             
-            logging.info(f'[Stripe Webhook] Plano atualizado com sucesso para user_id={user_id}, plano={plan_key}, expira em={expiry_str}')
+            create_notification(
+                user_id=user_id,
+                title="Plano Atualizado",
+                message=f"Seu plano foi atualizado para {PLANS[plan_key]['name']} com sucesso! Expira em {expiry_str}.",
+                type="success"
+            )
             
-            # Enviar email de confirmação
-            user_data = db.reference(f'users/{user_id}').get() or {}
-            email = user_data.get('email') or session_obj.get('customer_email')
+            email = session_obj.get('customer_email')
             if email:
                 try:
                     send_email(
                         subject='Pagamento confirmado - EazyBrief',
                         recipients=[email],
-                        body=f'Seu pagamento foi confirmado e seu plano {PLANS[plan_key]["name"]} já está ativo! Aproveite todos os benefícios.'
+                        body=f'Seu pagamento foi confirmado e seu plano {PLANS[plan_key]["name"]} já está ativo!'
                     )
                     logging.info(f'[Stripe Webhook] Email de confirmação enviado para {email}')
                 except Exception as e:
-                    logging.error(f'[Stripe Webhook] Erro ao enviar email de confirmação: {e}')
+                    logging.error(f'[Stripe Webhook] Erro ao enviar email: {e}')
         except Exception as e:
             logging.error(f'[Stripe Webhook] Erro ao atualizar plano: {e}')
             return 'Error updating plan', 500
+    
+    elif event['type'] == 'invoice.paid':
+        invoice = event['data']['object']
+        subscription_id = invoice['parent']['subscription_details']['subscription']
+        customer_id = invoice['customer']
+        
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            checkout_session = stripe.checkout.Session.list(subscription=subscription_id, limit=1).data[0]
+            user_id = checkout_session['metadata'].get('user_id')
+            plan_key = checkout_session['metadata'].get('plan')
+            
+            if not user_id or not plan_key:
+                logging.error(f'[Stripe Webhook] user_id ou plan_key ausentes em invoice.paid: user_id={user_id}, plan_key={plan_key}')
+                return 'Missing user_id or plan_key', 400
+                
+            if plan_key not in PLANS:
+                logging.error(f'[Stripe Webhook] Plano inválido em invoice.paid: {plan_key}')
+                return 'Invalid plan', 400
+                
+            expiry = (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1)
+            expiry_str = expiry.strftime('%Y-%m-%d')
+            
+            update_data = {
+                'plan': plan_key,
+                'plan_expiry': expiry_str,
+                'stripe_subscription_id': subscription_id,
+                'stripe_customer_id': customer_id
+            }
+            logging.info(f'[Stripe Webhook] Atualizando plano para invoice.paid: {update_data}')
+            
+            db.reference(f'users/{user_id}').update(update_data)
+            
+            create_notification(
+                user_id=user_id,
+                title="Plano Atualizado",
+                message=f"Seu plano foi atualizado para {PLANS[plan_key]['name']} com sucesso! Expira em {expiry_str}.",
+                type="success"
+            )
+            
+            email = invoice.get('customer_email')
+            if email:
+                send_email(
+                    subject='Pagamento confirmado - EazyBrief',
+                    recipients=[email],
+                    body=f'Seu pagamento foi confirmado e seu plano {PLANS[plan_key]["name"]} já está ativo!'
+                )
+        except Exception as e:
+            logging.error(f'[Stripe Webhook] Erro ao processar invoice.paid: {e}')
+            return 'Error processing invoice.paid', 500
+    
     else:
         logging.info(f'[Stripe Webhook] Evento ignorado: {event["type"]}')
     
     return '', 200
-
 # Lista de e-mails admin
 ADMINS = [
     'robbiealgon@gmail.com',
@@ -2036,6 +2203,43 @@ def oauth2callback():
         'scopes': credentials.scopes
     }
     return redirect(url_for('index'))
+
+@app.route('/api/transcribe-audio', methods=['POST'])
+def transcribe_audio():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'Nenhum arquivo de áudio enviado'}), 400
+
+    audio_file = request.files['audio']
+    if not audio_file.filename:
+        return jsonify({'error': 'Nome do arquivo inválido'}), 400
+
+    try:
+        # Salvar o arquivo temporariamente
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, secure_filename(audio_file.filename))
+        audio_file.save(temp_path)
+
+        # Transcrever usando a API do Groq
+        with open(temp_path, "rb") as file:
+            transcription = groq_client.audio.transcriptions.create(
+                file=(temp_path, file.read()),
+                model="whisper-large-v3-turbo",
+                response_format="verbose_json"
+            )
+
+        # Limpar o arquivo temporário
+        os.remove(temp_path)
+
+        return jsonify({
+            'text': transcription.text,
+            'success': True
+        })
+
+    except Exception as e:
+        print(f"Erro ao transcrever áudio: {str(e)}")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return jsonify({'error': f'Erro ao transcrever áudio: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

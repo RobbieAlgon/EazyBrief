@@ -3,7 +3,7 @@ python-dotenv==1.0.1
 firebase-admin==6.4.0
 pyrebase4==4.8.0
 requests==2.31.0
-groq==0.4.2
+groq==0.4.3
 httpx==0.24.1
 Werkzeug==3.0.1
 markupsafe==3.0.2

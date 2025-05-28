@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Novo Brief - EazyBrief{% endblock %}
+{% block title %}Novo Brief - {{ plan_data.get('name', 'Gratuito') }} - EazyBrief{% endblock %}
 
-{% block page_title %}Criar Novo Brief{% endblock %}
+{% block page_title %}Criar Novo Brief - {{ plan_data.get('name', 'Gratuito') }}{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Estilos base */
     .input-section { 
         display: block; 
         margin-bottom: 2rem;
@@ -42,6 +43,99 @@
     .preview-container.hidden {
         display: none;
     }
+
+    /* Estilos para mobile */
+    @media (max-width: 768px) {
+        .input-section {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-section h3 {
+            font-size: 1rem;
+        }
+        .max-w-4xl {
+            max-width: 100% !important;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .space-y-6 {
+            padding: 0 1rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Ajustes para mobile */
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 0 !important;
+            padding: 1rem;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar-overlay {
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+        
+        /* Ajustes para o formulário em mobile */
+        .input-section {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Ajustes para o resultado em mobile */
+        #result-section {
+            margin-top: 1.5rem;
+        }
+        
+        .preview-container {
+            padding: 0.75rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -60,34 +154,27 @@ let audioChunks = [];
 // Funções de upload e preview
 function handleImageUpload(input) {
     const file = input.files[0];
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewImg = document.getElementById('imagePreviewImg');
-    const imagePreviewName = document.getElementById('imagePreviewName');
-
-    if (file && imagePreview && imagePreviewImg && imagePreviewName) {
+    if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            currentImageData = e.target.result;
-            imagePreviewImg.src = currentImageData;
-            imagePreview.classList.remove('hidden');
-            imagePreviewName.textContent = file.name;
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('imagePreviewImg');
+            previewImg.src = e.target.result;
+            preview.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
     }
 }
 
 function removeImage() {
-    const imageFile = document.getElementById('imageFile');
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewImg = document.getElementById('imagePreviewImg');
-    const imagePreviewName = document.getElementById('imagePreviewName');
-
-    if (imageFile && imagePreview && imagePreviewImg && imagePreviewName) {
-        imageFile.value = '';
-        imagePreviewImg.src = '';
-        imagePreview.classList.add('hidden');
-        imagePreviewName.textContent = '';
-        currentImageData = '';
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('imagePreviewImg');
+    previewImg.src = '';
+    preview.classList.add('hidden');
+    currentImageData = null;
+    const imageInput = document.getElementById('imageFile');
+    if (imageInput) {
+        imageInput.value = '';
     }
 }
 
@@ -206,11 +293,15 @@ function getExtras() {
 async function generateBrief() {
     const text = document.getElementById('brief-text').value;
     const briefType = document.getElementById('brief-type').value;
-    const template = document.getElementById('brief-template').value;
+    const template = document.getElementById('template').value;
     const extras = getExtras();
-
+    
+    // Pegar dados do áudio e imagem
+    const audioFile = document.getElementById('audioFile').files[0];
+    const imageFile = document.getElementById('imageFile').files[0];
+    
     // Validar se pelo menos um formato foi fornecido
-    if (!text && !currentAudioData && !currentImageData) {
+    if (!text && !audioFile && !imageFile) {
         showError('Por favor, forneça pelo menos um formato (texto, áudio ou imagem)');
         return;
     }
@@ -224,7 +315,17 @@ async function generateBrief() {
     showLoading();
 
     try {
-        const audioData = currentAudioData ? await blobToBase64(currentAudioData) : '';
+        // Converter áudio e imagem para base64
+        let audioData = '';
+        let imageData = '';
+        
+        if (audioFile) {
+            audioData = await blobToBase64(audioFile);
+        }
+        
+        if (imageFile) {
+            imageData = await blobToBase64(imageFile);
+        }
         
         const response = await fetch('/api/generate-brief', {
             method: 'POST',
@@ -236,7 +337,7 @@ async function generateBrief() {
                 type: briefType,
                 template,
                 extras,
-                image: currentImageData,
+                image: imageData,
                 audio: audioData
             })
         });
@@ -350,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <form id="brief-form" class="space-y-6">
+    <form id="brief-form" class="space-y-6" onsubmit="event.preventDefault(); generateBrief();">
         <!-- Seção de Texto -->
         <div class="input-section">
             <h3><i class="fas fa-file-alt"></i>Texto</h3>
@@ -395,9 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     Escolher Imagem
                 </button>
             </div>
-            <div id="imagePreview" class="preview-container hidden">
-                <img id="imagePreviewImg" class="max-h-48 mx-auto rounded-lg" src="" alt="Preview">
-                <p id="imagePreviewName" class="text-sm text-gray-600 mt-2 text-center"></p>
+            <div class="mt-4 hidden" id="imagePreview">
+                <img id="imagePreviewImg" src="" alt="Preview da Imagem" class="w-32 h-32 object-cover rounded-lg">
                 <button type="button" onclick="removeImage()" class="text-red-600 hover:text-red-700 mt-2">
                     <i class="fas fa-times mr-1"></i>Remover Imagem
                 </button>
@@ -408,27 +508,34 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="input-section">
             <h3><i class="fas fa-cog"></i>Configurações</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Template Seleção -->
+                <div>
+                    <label for="template" class="block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <select id="template" 
+                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Selecione um template</option>
+                        <option value="padrao">Padrão</option>
+                        <option value="profissional">Profissional</option>
+                        <option value="moderno">Moderno</option>
+                        <option value="simples">Simples</option>
+                    </select>
+                </div>
                 <div>
                     <label for="brief-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Briefing</label>
                     <select id="brief-type" 
                             class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">Selecione o tipo</option>
-                        <option value="social-media">Social Media</option>
                         <option value="marketing">Marketing</option>
-                        <option value="content">Conteúdo</option>
                         <option value="design">Design</option>
+                        <option value="conteudo">Conteúdo</option>
+                        <option value="vendas">Vendas</option>
+                        <option value="outros">Outros</option>
+                        {% if 'social-media' in plan_data.features %}
+                        <option value="social-media">Social Media</option>
+                        {% endif %}
                     </select>
                 </div>
-                <div>
-                    <label for="brief-template" class="block text-sm font-medium text-gray-700 mb-1">Template</label>
-                    <select id="brief-template" 
-                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">Selecione o template</option>
-                        <option value="standard">Padrão</option>
-                        <option value="detailed">Detalhado</option>
-                        <option value="creative">Criativo</option>
-                    </select>
-                </div>
+
             </div>
         </div>
 
@@ -442,13 +549,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 Adicionar Campo Extra
             </button>
         </div>
-
-        <!-- Botão de Geração -->
-        <div class="flex justify-center">
-            <button type="button" onclick="generateBrief()" 
-                    class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center text-lg font-semibold">
+        <!-- Botão de Ação -->
+        <div class="flex justify-end space-x-4 mt-6">
+            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
                 <i class="fas fa-magic mr-2"></i>
-                Gerar Briefing
+                Gerar Brief
             </button>
         </div>
     </form>

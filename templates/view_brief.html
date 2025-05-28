@@ -21,30 +21,39 @@
                                 <span>Exportar</span>
                             </button>
                             <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('export_brief_pdf', brief_id=brief.id) }}">
-                                        <i class="fas fa-file-pdf"></i>
-                                        <span>PDF</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('export_brief_docx', brief_id=brief.id) }}">
-                                        <i class="fas fa-file-word"></i>
-                                        <span>Word</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('export_brief_txt', brief_id=brief.id) }}">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>TXT</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('export_brief_html', brief_id=brief.id) }}">
-                                        <i class="fas fa-file-code"></i>
-                                        <span>HTML</span>
-                                    </a>
-                                </li>
+                            {% if plan_data.export_formats %}
+                                {% for format in plan_data.export_formats %}
+                                    {% if format == 'pdf' %}
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('export_brief_pdf', brief_id=brief.id) }}">
+                                                <i class="fas fa-file-pdf"></i>
+                                                <span>PDF</span>
+                                            </a>
+                                        </li>
+                                    {% elif format == 'docx' %}
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('export_brief_docx', brief_id=brief.id) }}">
+                                                <i class="fas fa-file-word"></i>
+                                                <span>Word</span>
+                                            </a>
+                                        </li>
+                                    {% elif format == 'txt' %}
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('export_brief_txt', brief_id=brief.id) }}">
+                                                <i class="fas fa-file-alt"></i>
+                                                <span>TXT</span>
+                                            </a>
+                                        </li>
+                                    {% elif format == 'html' %}
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('export_brief_html', brief_id=brief.id) }}">
+                                                <i class="fas fa-file-code"></i>
+                                                <span>HTML</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
                             </ul>
                         </div>
                         <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="action-btn edit-btn">

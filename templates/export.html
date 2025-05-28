@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Exportar e Integrar - EazyBrief{% endblock %}
+{% block title %}Exportar e Integrar - {{ plan_data.get('name', 'Gratuito') }} - EazyBrief{% endblock %}
 
-{% block page_title %}Exportar e Integrar{% endblock %}
+{% block page_title %}Exportar e Integrar - {{ plan_data.get('name', 'Gratuito') }}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -18,17 +18,22 @@
                         <div class="mb-3">
                             <label class="form-label">Formato</label>
                             <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="format" id="pdf" value="pdf" checked>
-                                <label class="btn btn-outline-primary" for="pdf">PDF</label>
-                                
-                                <input type="radio" class="btn-check" name="format" id="docx" value="docx">
-                                <label class="btn btn-outline-primary" for="docx">Word</label>
-                                
-                                <input type="radio" class="btn-check" name="format" id="txt" value="txt">
-                                <label class="btn btn-outline-primary" for="txt">TXT</label>
-                                
-                                <input type="radio" class="btn-check" name="format" id="html" value="html">
-                                <label class="btn btn-outline-primary" for="html">HTML</label>
+                                {% if 'pdf' in plan_data.export_formats %}
+                                    <input type="radio" class="btn-check" name="format" id="pdf" value="pdf" checked>
+                                    <label class="btn btn-outline-primary" for="pdf">PDF</label>
+                                {% endif %}
+                                {% if 'docx' in plan_data.export_formats %}
+                                    <input type="radio" class="btn-check" name="format" id="docx" value="docx">
+                                    <label class="btn btn-outline-primary" for="docx">Word</label>
+                                {% endif %}
+                                {% if 'txt' in plan_data.export_formats %}
+                                    <input type="radio" class="btn-check" name="format" id="txt" value="txt">
+                                    <label class="btn btn-outline-primary" for="txt">TXT</label>
+                                {% endif %}
+                                {% if 'html' in plan_data.export_formats %}
+                                    <input type="radio" class="btn-check" name="format" id="html" value="html">
+                                    <label class="btn btn-outline-primary" for="html">HTML</label>
+                                {% endif %}
                             </div>
                         </div>
                         

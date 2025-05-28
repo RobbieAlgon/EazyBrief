@@ -134,9 +134,7 @@ PLANS = {
             '3 briefs por mês',
             'Templates básicos',
             'Exportação em PDF',
-            'Suporte por email',
-            'Dashboard básico',
-            'Histórico limitado'
+            'Suporte por email'
         ],
         'templates': ['classic'],
         'export_formats': ['pdf'],
@@ -166,9 +164,9 @@ PLANS = {
         'name': 'Premium',
         'price': 19,
         'stripe_price_id': os.getenv('STRIPE_PREMIUM_PRICE_ID'),
-        'brief_limit': None,  # Ilimitado
+        'brief_limit': 50,  # Mantendo o limite de 50 para manter consistência com o plano Pro
         'features': [
-            'Briefs ilimitados',
+            '50 briefs por mês',
             'Templates exclusivos',
             'Exportação em massa',
             'Suporte VIP',
@@ -219,37 +217,56 @@ def increment_brief_count(user_id):
 def can_create_brief(user_id):
     plan, plan_expiry, briefs_this_month, user_data = get_user_plan_info(user_id)
     limit = PLANS[plan]['brief_limit']
-    if plan in ['pro', 'premium'] and plan_expiry:
-        # Verifica se plano expirou
+    
+    # Verifica se o plano expirou e faz downgrade para free
+    if plan_expiry:
         expiry_dt = datetime.strptime(plan_expiry, '%Y-%m-%d')
         if expiry_dt < datetime.utcnow():
             # Downgrade automático
-            db.reference(f'users/{user_id}').update({'plan': 'free', 'plan_expiry': None})
+            db.reference(f'users/{user_id}').update({
+                'plan': 'free',
+                'plan_expiry': None,
+                'briefs_used': {},  # Reseta o contador de briefs
+                'notified_limit': {}  # Reseta os avisos de limite
+            })
             plan = 'free'
             limit = PLANS['free']['brief_limit']
-    if limit is None:
-        return True
-    # Enviar aviso se atingir o limite e ainda não foi avisado este mês
-    now = datetime.utcnow()
-    month_key = now.strftime('%Y-%m')
-    if briefs_this_month >= limit:
-        user_ref = db.reference(f'users/{user_id}')
-        user_data = user_ref.get() or {}
-        email = user_data.get('email')
-        notified = user_data.get('notified_limit', {})
-        if not notified.get(month_key):
+            
+            # Notifica sobre o downgrade
+            email = user_data.get('email')
             if email:
                 try:
                     send_email(
-                        subject='Atenção: Limite do plano atingido - EazyBrief',
+                        subject='Aviso: Plano expirado - EazyBrief',
                         recipients=[email],
-                        body=f'Você atingiu o limite de briefs do seu plano {PLANS[plan]["name"]}. Faça upgrade para continuar usando sem restrições.'
+                        body=f'Seu plano {PLANS[user_data.get("plan", "free")]["name"]} expirou. Você foi automaticamente revertido para o plano gratuito. Faça upgrade para continuar usando sem restrições.'
                     )
                 except Exception as e:
-                    print(f'Erro ao enviar email de limite atingido: {e}')
-            notified[month_key] = True
-            user_ref.update({'notified_limit': notified})
-        return False
+                    print(f'Erro ao enviar email de downgrade: {e}')
+    
+    # Verifica se atingiu o limite de briefs
+    if limit is not None:  # Se tiver limite definido (free e pro)
+        now = datetime.utcnow()
+        month_key = now.strftime('%Y-%m')
+        if briefs_this_month >= limit:
+            user_ref = db.reference(f'users/{user_id}')
+            user_data = user_ref.get() or {}
+            email = user_data.get('email')
+            notified = user_data.get('notified_limit', {})
+            if not notified.get(month_key):
+                if email:
+                    try:
+                        send_email(
+                            subject='Atenção: Limite do plano atingido - EazyBrief',
+                            recipients=[email],
+                            body=f'Você atingiu o limite de briefs do seu plano {PLANS[plan]["name"]}. Faça upgrade para continuar usando sem restrições.'
+                        )
+                    except Exception as e:
+                        print(f'Erro ao enviar email de limite atingido: {e}')
+                notified[month_key] = True
+                user_ref.update({'notified_limit': notified})
+            return False
+    
     return True
 
 
@@ -577,11 +594,7 @@ def logout():
     flash('Você saiu da sua conta.', 'info')
     return redirect(url_for('login'))
 
-@app.route('/new_brief')
-@login_required
-def new_brief():
-    user_info = auth.get_user_by_email(session['user_email'])
-    return render_template('new_brief.html', user=user_info)
+
 
 @app.route('/my_briefs')
 @login_required
@@ -645,48 +658,49 @@ def profile():
                 
                 # Obter a URL pública
                 photo_url = blob.public_url
-                
+                user_data['photo_url'] = photo_url
             except Exception as e:
-                print(f"Erro ao fazer upload da foto: {str(e)}")
-                flash(f'Erro ao fazer upload da foto: {str(e)}', 'danger')
+                logging.error(f'Erro ao fazer upload da foto: {str(e)}')
+                flash('Erro ao fazer upload da foto. Por favor, tente novamente.', 'danger')
                 return redirect(url_for('profile'))
         
-        try:
-            # Atualizar preferências do usuário
-            db.reference(f'user_prefs/{user_id}').update({
-                'display_name': display_name,
-                'phone': phone,
-                'photo_url': photo_url
-            })
-            
-            # Atualizar informações do usuário no Firebase Auth
-            update_data = {
-                'display_name': display_name,
-                'photo_url': photo_url
-            }
-            # Só adiciona o telefone se não estiver vazio
-            if phone:
-                update_data['phone_number'] = phone
-            
-            auth.update_user(user_info.uid, **update_data)
-            flash('Perfil atualizado com sucesso!', 'success')
-        except Exception as e:
-            print(f"Erro ao atualizar perfil: {str(e)}")
-            flash(f'Erro ao atualizar perfil: {str(e)}', 'danger')
+        # Atualizar dados do usuário
+        if display_name:
+            user_data['display_name'] = display_name
+        if phone:
+            user_data['phone'] = phone
         
+        # Atualizar dados no Firebase
+        user_ref = db.reference(f'users/{user_id}')
+        user_ref.update(user_data)
+        flash('Perfil atualizado com sucesso!', 'success')
         return redirect(url_for('profile'))
     
-    return render_template(
-        'profile.html',
-        user_display_name=prefs.get('display_name', user_info.display_name or ''),
-        user_email=user_info.email,
-        user_phone=prefs.get('phone', user_info.phone_number or ''),
-        user_photo=prefs.get('photo_url', user_info.photo_url),
-        user=user_info,
-        user_plan=plan,
-        plan_expiry=plan_expiry,
-        plans=PLANS
-    )
+    plan, plan_expiry, _, _ = get_user_plan_info(user_id)
+    plan_data = PLANS.get(plan, PLANS['free'])
+    
+    # Combinar dados do usuário
+    user_info_data = {
+        'display_name': user_info.display_name or '',
+        'email': user_info.email or '',
+        'photo_url': user_info.photo_url or '',
+        'phone': user_data.get('phone', '')
+    }
+    
+    # Sobrescrever com dados do user_data quando disponíveis
+    user_info_data.update({
+        'display_name': user_data.get('display_name', user_info_data['display_name']),
+        'photo_url': user_data.get('photo_url', user_info_data['photo_url']),
+        'phone': user_data.get('phone', user_info_data['phone'])
+    })
+    
+    return render_template('profile.html',
+                         user_display_name=user_info_data['display_name'],
+                         user_email=user_info_data['email'],
+                         user_phone=user_info_data['phone'],
+                         user_photo=user_info_data['photo_url'],
+                         plan_data=plan_data,
+                         plan_expiry=plan_expiry)
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -695,29 +709,48 @@ def settings():
     prefs = db.reference(f'user_prefs/{user_id}').get() or {}
     
     if request.method == 'POST':
-        theme = request.form.get('theme', prefs.get('theme', 'light'))
-        db.reference(f'user_prefs/{user_id}').update({'theme': theme})
-        flash('Preferências salvas com sucesso!', 'success')
+        # Atualizar preferências
+        new_prefs = request.form.to_dict()
+        db.reference(f'user_prefs/{user_id}').update(new_prefs)
+        flash('Preferências atualizadas com sucesso!', 'success')
         return redirect(url_for('settings'))
     
-    return render_template('settings.html')
+    # Carregar dados do usuário
+    user_info = auth.get_user(user_id)
+    user_data = db.reference(f'users/{user_id}').get() or {}
+    
+    # Carregar planos disponíveis e plano atual
+    available_plans = PLANS  # Usando a constante PLANS diretamente
+    current_plan_info = get_user_plan_info(user_id)
+    current_plan = current_plan_info[0]  # Pega o nome do plano
+    
+    return render_template('settings.html',
+                         user_info=user_info,
+                         user_data=user_data,
+                         prefs=prefs,
+                         plans=available_plans,
+                         current_plan=current_plan,
+                         current_plan_info=current_plan_info)
 
 @app.route('/brief/<brief_id>')
 @login_required
 def view_brief(brief_id):
-    user_info = auth.get_user_by_email(session['user_email'])
     user_id = get_user_id()
-    brief = db.reference(f'briefs/{user_id}/{brief_id}').get()
+    brief_ref = db.reference(f'briefs/{user_id}/{brief_id}')
+    brief = brief_ref.get()
     if not brief:
         flash('Brief não encontrado.', 'danger')
         return redirect(url_for('my_briefs'))
+    
+    # Obter informações do plano do usuário
+    plan, _, _, user_data = get_user_plan_info(user_id)
+    
     brief['id'] = brief_id
-    return render_template('view_brief.html', user=user_info, brief=brief)
+    return render_template('view_brief.html', brief=brief, plan_data=PLANS.get(plan, PLANS['free']))
 
 @app.route('/brief/<brief_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_brief(brief_id):
-    user_info = auth.get_user_by_email(session['user_email'])
     user_id = get_user_id()
     brief = db.reference(f'briefs/{user_id}/{brief_id}').get()
     if not brief:
@@ -758,11 +791,13 @@ def inject_year():
     return {'year': datetime.now().year}
 
 @app.context_processor
-def inject_user_theme():
+def inject_user_info():
     user_theme = 'light'
     user_photo = None
     user_plan = 'free'
     user_id = get_user_id()
+    plan_data = PLANS['free']  # Define o plano padrão como 'free'
+    
     if user_id:
         prefs = db.reference(f'user_prefs/{user_id}').get() or {}
         user_theme = prefs.get('theme', 'light')
@@ -770,7 +805,15 @@ def inject_user_theme():
         user_photo = prefs.get('photo_url', user_info.photo_url)
         user_data = db.reference(f'users/{user_id}').get() or {}
         user_plan = user_data.get('plan', 'free')
-    return dict(user_theme=user_theme, user_photo=user_photo, user_plan=user_plan, plans=PLANS)
+        plan_data = PLANS.get(user_plan, PLANS['free'])
+    
+    return dict(
+        user_theme=user_theme, 
+        user_photo=user_photo, 
+        user_plan=user_plan, 
+        plan_data=plan_data,
+        plans=PLANS
+    )
 
 @app.route('/api/generate-brief', methods=['POST'])
 def api_generate_brief():
@@ -1314,8 +1357,6 @@ ADMINS = [
 
 def is_admin(email):
     return email and email.lower() in ADMINS
-
-@app.route('/admin')
 def admin_dashboard():
     if 'user_email' not in session or not is_admin(session['user_email']):
         flash('Acesso restrito ao administrador.', 'danger')
@@ -1330,16 +1371,21 @@ def admin_dashboard():
         list(u.get('briefs_used', {}).values())[-1] if u.get('briefs_used') else 0
         for u in users_data.values()
     )
+    
+    # Obter informações do plano do usuário
+    plan, _, _, _ = get_user_plan_info(session['user_id'])
+    plan_data = PLANS.get(plan, PLANS['free'])
+    
     return render_template(
         'admin.html',
         total_users=total_users,
         active_pro=active_pro,
         active_premium=active_premium,
         briefs_this_month=briefs_this_month,
-        users=users_data
+        users=users_data,
+        PLANS=PLANS,
+        plan_data=plan_data
     )
-
-@app.context_processor
 def inject_ga_measurement_id():
     return {'GA_MEASUREMENT_ID': os.getenv('GA_MEASUREMENT_ID', '')}
 
@@ -1411,8 +1457,12 @@ def inject_notification_count():
     return dict(notification_count=notification_count)
 
 @app.route('/support')
+@login_required
 def support():
-    return render_template('support.html')
+    user_id = get_user_id()
+    plan, _, _, _ = get_user_plan_info(user_id)
+    plan_data = PLANS.get(plan, PLANS['free'])
+    return render_template('support.html', plan_data=plan_data)
 
 @app.route('/api/contact', methods=['POST'])
 def contact():
@@ -1462,7 +1512,12 @@ def contact():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/status')
+@login_required
 def status():
+    user_id = get_user_id()
+    plan, _, _, _ = get_user_plan_info(user_id)
+    plan_data = PLANS.get(plan, PLANS['free'])
+    
     # Obter status atual dos componentes
     api_status = check_api_status()
     db_status = check_database_status()
@@ -1473,12 +1528,13 @@ def status():
     incidents = get_recent_incidents()
     
     return render_template('status.html',
+        last_update=datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
         api_status=api_status,
         db_status=db_status,
         auth_status=auth_status,
         payment_status=payment_status,
         incidents=incidents,
-        last_update=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        plan_data=plan_data
     )
 
 @app.route('/api/status')
@@ -1552,6 +1608,13 @@ def legal():
     return render_template('legal.html',
         last_update=datetime.now().strftime('%d/%m/%Y')
     )
+
+@app.route('/new_brief')
+@login_required
+def new_brief():
+    user_id = get_user_id()
+    plan, _, _, user_data = get_user_plan_info(user_id)
+    return render_template('new_brief.html', plan_data=PLANS.get(plan, PLANS['free']))
 
 @app.route('/feedback')
 def feedback():
@@ -1627,14 +1690,28 @@ def inject_firebase_config():
         }
     }
 
+@login_required
 @app.route('/export')
 @login_required
 def export_page():
-    return render_template('export.html')
+    user_id = get_user_id()
+    plan, _, _, user_data = get_user_plan_info(user_id)
+    return render_template('export.html', plan_data=PLANS.get(plan, PLANS['free']))
 
 @app.route('/api/export/<format>', methods=['POST'])
 @login_required
 def export_brief(format):
+    user_id = get_user_id()
+    plan, _, _, _ = get_user_plan_info(user_id)
+    
+    # Verifica se o formato está permitido no plano do usuário
+    allowed_formats = PLANS[plan]['export_formats']
+    if format not in allowed_formats:
+        return jsonify({
+            'error': f'Formato não disponível no seu plano {PLANS[plan]["name"]}. '
+                    f'Formatos disponíveis: {", ".join(allowed_formats)}'
+        }), 403
+    
     if format not in ['pdf', 'docx', 'txt', 'html']:
         return jsonify({'error': 'Formato não suportado'}), 400
     

@@ -34,19 +34,25 @@
         }
         /* Estilos para o menu lateral */
         .sidebar {
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
             z-index: 50;
+            display: block;
+            transform: translateX(0);
+            opacity: 1;
         }
         @media (max-width: 768px) {
             .sidebar {
-                left: -100%;
+                transform: translateX(-100%);
+                opacity: 0;
+                display: block;
             }
             .sidebar.active {
-                left: 0;
+                transform: translateX(0);
+                opacity: 1;
             }
             .sidebar-overlay {
                 display: none;
@@ -57,9 +63,11 @@
                 bottom: 0;
                 background: rgba(0, 0, 0, 0.5);
                 z-index: 40;
+                transition: opacity 0.3s ease;
             }
             .sidebar-overlay.active {
                 display: block;
+                opacity: 1;
             }
         }
         /* Ajuste do conteúdo principal para compensar o menu fixo */
@@ -118,6 +126,8 @@
             {% set nav_link_class = 'block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700' %}
         {% endif %}
         <aside class="{{ sidebar_class }}" id="sidebar">
+
+            
             <nav class="mt-4">
                 <a href="{{ url_for('dashboard') }}" class="{{ nav_link_class }}">
                     <i class="fas fa-home mr-2"></i>Dashboard
@@ -157,44 +167,42 @@
 
         <!-- Main Content Column -->
         <div class="flex-1 flex flex-col min-h-screen {% if session.get('user') and session.get('user_email') %}main-content{% endif %}">
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between h-32">
-                        <div class="flex items-center">
-                            <a href="/" class="flex items-center">
-                                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief Logo" class="h-28 w-auto object-contain">
-                            </a>
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center h-16 px-4 sm:px-6 lg:px-8">
+                    <div class="flex-1 flex items-center">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-xl font-bold text-gray-900">{{ page_title }}</span>
                         </div>
-                        <div class="flex items-center">
-                            {% if session.get('user') and session.get('user_email') %}
-                                <div class="relative">
-                                    <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center space-x-2 focus:outline-none">
-                                        {% if user_photo %}
-                                            <img src="{{ user_photo }}" alt="Foto do perfil" class="h-8 w-8 rounded-full">
-                                        {% else %}
-                                            <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                        {% endif %}
-                                        <div class="flex flex-col items-start">
-                                            <span class="text-gray-700">{{ session.get('user_email') }}</span>
-                                            <span class="text-xs font-medium {% if user_plan == 'premium' %}text-yellow-600{% elif user_plan == 'pro' %}text-blue-600{% else %}text-gray-500{% endif %}">
-                                                Plano {{ plans[user_plan].name }}
-                                            </span>
+                    </div>
+                    <div class="flex items-center">
+                        {% if session.get('user') and session.get('user_email') %}
+                            <div class="relative">
+                                <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center space-x-2 focus:outline-none">
+                                    {% if user_photo %}
+                                        <img src="{{ user_photo }}" alt="Foto do perfil" class="h-8 w-8 rounded-full">
+                                    {% else %}
+                                        <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                                            <i class="fas fa-user"></i>
                                         </div>
-                                    </button>
-                                    <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 hidden bg-white" id="user-dropdown">
-                                        <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
-                                        <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</a>
+                                    {% endif %}
+                                    <div class="flex flex-col items-start">
+                                        <span class="text-gray-700">{{ session.get('user_email') }}</span>
+                                        <span class="text-xs font-medium {% if user_plan == 'premium' %}text-yellow-600{% elif user_plan == 'pro' %}text-blue-600{% else %}text-gray-500{% endif %}">
+                                            Plano {{ plans[user_plan].name }}
+                                        </span>
                                     </div>
+                                </button>
+                                <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 hidden bg-white" id="user-dropdown">
+                                    <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
+                                    <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</a>
                                 </div>
-                            {% else %}
-                                <div class="flex space-x-4">
-                                    <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">Entrar</a>
-                                    <a href="{{ url_for('signup') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Cadastrar</a>
-                                </div>
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% else %}
+                            <div class="flex space-x-4">
+                                <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">Entrar</a>
+                                <a href="{{ url_for('signup') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Cadastrar</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </header>
@@ -253,7 +261,7 @@
                             <a href="{{ url_for('legal') }}" class="text-sm text-gray-500 hover:text-gray-700">
                                 Termos de Uso e Privacidade
                             </a>
-                            <a href="{{ url_for('feedback') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                            <a href="{{ url_for('submit_feedback') }}" class="text-sm text-gray-500 hover:text-gray-700">
                                 Feedback
                             </a>
                         </div>
@@ -265,39 +273,51 @@
 
     <!-- Script para controlar o menu lateral -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Função simples para alternar o menu
+        function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebar-toggle');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
+            
+            if (sidebar && sidebarOverlay) {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            }
+        }
 
-            if (sidebarToggle && sidebar && sidebarOverlay) {
-                // Função para alternar o menu
-                function toggleSidebar() {
-                    sidebar.classList.toggle('active');
-                    sidebarOverlay.classList.toggle('active');
-                }
+        // Adiciona listeners imediatamente
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-                // Event listeners
-                sidebarToggle.addEventListener('click', toggleSidebar);
-                sidebarOverlay.addEventListener('click', toggleSidebar);
+        if (sidebar && sidebarToggle && sidebarOverlay) {
+            // Adiciona listeners
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
 
-                // Fechar menu ao clicar em um link (mobile)
-                const navLinks = sidebar.querySelectorAll('nav a');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', () => {
-                        if (window.innerWidth < 768) {
-                            toggleSidebar();
-                        }
-                    });
-                });
+            // Fecha o menu ao clicar em links
+            const navLinks = sidebar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', toggleSidebar);
+            });
 
-                // Ajustar menu ao redimensionar a janela
-                window.addEventListener('resize', () => {
-                    if (window.innerWidth >= 768) {
-                        sidebar.classList.remove('active');
-                        sidebarOverlay.classList.remove('active');
+            // Fecha o menu ao clicar fora
+            document.addEventListener('click', (e) => {
+                // Verifica se o menu está ativo
+                if (sidebar.classList.contains('active')) {
+                    // Verifica se o clique foi fora do menu e do botão de toggle
+                    if (!sidebar.contains(e.target) && 
+                        !sidebarToggle.contains(e.target)) {
+                        toggleSidebar();
                     }
-                });
+                }
+            });
+        }
+
+        // Fecha o menu ao redimensionar
+        window.addEventListener('resize', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('active')) {
+                toggleSidebar();
             }
         });
     </script>

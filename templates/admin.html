@@ -38,7 +38,7 @@
                 {% for uid, user in users.items() %}
                 <tr>
                     <td class="px-4 py-2 text-xs md:text-sm">{{ user.email or '-' }}</td>
-                    <td class="px-4 py-2">{{ user.plan|default('free') }}</td>
+                    <td class="px-4 py-2">{{ PLANS[user.plan|default('free')].name }}</td>
                     <td class="px-4 py-2">{{ user.plan_expiry or '-' }}</td>
                     <td class="px-4 py-2">{{ user.briefs_used.values()|list|last or 0 }}</td>
                     <td class="px-4 py-2">{% if user.notified_limit %}Sim{% else %}Não{% endif %}</td>

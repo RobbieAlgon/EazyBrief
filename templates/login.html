@@ -61,7 +61,7 @@
             </div>
 
             <div class="mt-6">
-                <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <button id="googleLoginBtn" onclick="signInWithGoogle()" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                     <img src="{{ url_for('static', filename='images/google-logo.png') }}" alt="Google" class="h-5 w-5 mr-2">
                     Entrar com Google
                 </button>
@@ -75,6 +75,24 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Função para desabilitar todos os botões
+        function disableButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.5';
+            });
+        }
+
+        // Função para habilitar todos os botões
+        function enableButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.disabled = false;
+                button.style.opacity = '1';
+            });
+        }
+
         // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "{{ config['FIREBASE_API_KEY'] }}",
@@ -96,8 +114,13 @@
 
         // Função para login com Google
         window.signInWithGoogle = function() {
+            // Desabilita todos os botões antes de iniciar o login
+            disableButtons();
+            
             firebase.auth().signInWithPopup(provider)
                 .then((result) => {
+                    // Habilita os botões após o login bem-sucedido
+                    enableButtons();
                     // Obter o token de ID do Firebase
                     return result.user.getIdToken();
                 })

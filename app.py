@@ -22,59 +22,12 @@ import stripe
 import subprocess
 import platform
 
-# Função para sincronizar o horário do sistema
-def sync_system_time():
-    try:
-        # Usa apenas o timeapi.io com formato específico
-        time_server = 'https://timeapi.io/api/Time/current/zone/UTC'
-        
-        try:
-            response = requests.get(time_server, timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                # Extrai os componentes da data/hora
-                year = data.get('year')
-                month = data.get('month')
-                day = data.get('day')
-                hour = data.get('hour')
-                minute = data.get('minute')
-                second = data.get('seconds')
-                
-                if all(v is not None for v in [year, month, day, hour, minute, second]):
-                    # Constrói a data/hora manualmente
-                    server_time = datetime(year, month, day, hour, minute, second, tzinfo=timezone.utc)
-                    
-                    # Converte o horário do sistema para UTC
-                    system_time = datetime.now(timezone.utc)
-                    
-                    # Calcula a diferença de tempo
-                    time_diff = abs((server_time - system_time).total_seconds())
-                    
-                    if time_diff > 60:  # Se a diferença for maior que 1 minuto
-                        logging.warning(f'Diferença de horário detectada: {time_diff} segundos')
-                        logging.warning('Por favor, sincronize o horário do seu sistema manualmente:')
-                        logging.warning('1. Clique com o botão direito no relógio do Windows')
-                        logging.warning('2. Selecione "Ajustar data/hora"')
-                        logging.warning('3. Clique em "Sincronizar agora"')
-                        return False
-                    
-                    logging.info('Horário do sistema está sincronizado')
-                    return True
-                    
-        except Exception as e:
-            logging.warning(f'Erro ao tentar servidor {time_server}: {str(e)}')
-        
-        logging.error('Não foi possível obter o horário do servidor')
-        return False
-        
-    except Exception as e:
-        logging.error(f'Erro ao sincronizar horário: {str(e)}')
-        return False
+
 
 # Configuração do Flask
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Sessão dura 7 dias
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Sessão dura 30 dias
 
 # Configuração de logging
 logging.basicConfig(
@@ -82,9 +35,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# Sincroniza o horário antes de iniciar a aplicação
-if not sync_system_time():
-    logging.warning('Não foi possível sincronizar o horário do sistema. O login com Google pode não funcionar corretamente.')
 
 import json
 import base64
@@ -416,9 +366,7 @@ def login():
 @app.route('/google/callback', methods=['POST'])
 def google_callback():
     try:
-        # Verifica e sincroniza o horário antes de processar o callback
-        if not sync_system_time():
-            logging.warning('Não foi possível sincronizar o horário do sistema')
+
         
         id_token = request.json.get('idToken')
         if not id_token:

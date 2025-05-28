@@ -4,258 +4,449 @@
 
 {% block page_title %}Visualizar Brief{% endblock %}
 
-{% block content %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="brief-card">
-                <div class="brief-header">
-                    <div class="brief-title">
-                        <h2>{{ brief.brief_type }}</h2>
-                        <span class="brief-date">{{ brief.created_at }}</span>
-                    </div>
-                    <div class="brief-actions">
-                        <div class="action-group">
-                            <button type="button" class="action-btn export-btn" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-file-export"></i>
-                                <span>Exportar</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                            {% if plan_data.export_formats %}
-                                {% for format in plan_data.export_formats %}
-                                    {% if format == 'pdf' %}
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('export_brief_pdf', brief_id=brief.id) }}">
-                                                <i class="fas fa-file-pdf"></i>
-                                                <span>PDF</span>
-                                            </a>
-                                        </li>
-                                    {% elif format == 'docx' %}
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('export_brief_docx', brief_id=brief.id) }}">
-                                                <i class="fas fa-file-word"></i>
-                                                <span>Word</span>
-                                            </a>
-                                        </li>
-                                    {% elif format == 'txt' %}
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('export_brief_txt', brief_id=brief.id) }}">
-                                                <i class="fas fa-file-alt"></i>
-                                                <span>TXT</span>
-                                            </a>
-                                        </li>
-                                    {% elif format == 'html' %}
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('export_brief_html', brief_id=brief.id) }}">
-                                                <i class="fas fa-file-code"></i>
-                                                <span>HTML</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                            </ul>
-                        </div>
-                        <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="action-btn edit-btn">
-                            <i class="fas fa-edit"></i>
-                            <span>Editar</span>
-                        </a>
-                        <form action="{{ url_for('delete_brief', brief_id=brief.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este brief?');">
-                            <button type="submit" class="action-btn delete-btn">
-                                <i class="fas fa-trash"></i>
-                                <span>Excluir</span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <div class="brief-content">
-                    <div class="content-section">
-                        <div class="section-header">
-                            <i class="fas fa-file-alt"></i>
-                            <h3>Texto Original</h3>
-                        </div>
-                        <div class="section-body">
-                            {{ brief.text|markdown|safe }}
-                        </div>
-                    </div>
-                    <div class="content-section">
-                        <div class="section-header">
-                            <i class="fas fa-check-circle"></i>
-                            <h3>Resultado</h3>
-                        </div>
-                        <div class="section-body">
-                            {{ brief.result|markdown|safe }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
+{{ super() }}
 <style>
+/* Estilos para o cartão */
 .brief-card {
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     overflow: hidden;
 }
 
-.brief-header {
+/* Estilos para o header */
+.brief-card .brief-header {
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    padding: 2rem;
-    color: white;
+    padding: 1.5rem;
+    color: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
-.brief-title h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-
-.brief-date {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.brief-actions {
+/* Estilos para o título */
+.brief-card .brief-title {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 100%;
 }
 
-.action-group {
+.brief-card .brief-title h2 {
+    margin: 0;
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.brief-card .brief-date {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    opacity: 0.9;
+    color: #ffffff;
+}
+
+/* Estilos para a seção de ações */
+.brief-card .brief-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: flex-end;
+    flex-grow: 1;
+}
+
+/* Estilos para o grupo de ações */
+.brief-card .action-group {
     position: relative;
 }
 
-.action-btn {
+/* Estilos para os botões */
+.brief-card .action-btn {
     background: rgba(255, 255, 255, 0.15);
     border: none;
-    border-radius: 8px;
-    color: white;
-    padding: 0.8rem 1.2rem;
+    border-radius: 0.5rem;
+    color: #ffffff;
+    padding: 0.6rem 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
     cursor: pointer;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.action-btn:hover {
+.brief-card .action-btn:hover {
     background: rgba(255, 255, 255, 0.25);
     transform: translateY(-2px);
 }
 
-.action-btn i {
+.brief-card .action-btn i {
     font-size: 1.1rem;
 }
 
-.dropdown-menu {
-    display: none;
+/* Estilos para o dropdown */
+.brief-card .dropdown-menu {
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
+    background: #ffffff;
     border: none;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     padding: 0.5rem;
-    min-width: 200px;
+    min-width: 180px;
     z-index: 1000;
     margin-top: 0.5rem;
 }
 
-.dropdown-menu.show {
+.brief-card .dropdown-menu.show {
     display: block;
 }
 
-.dropdown-item {
+.brief-card .dropdown-item {
     display: flex;
     align-items: center;
     gap: 0.8rem;
     padding: 0.8rem 1rem;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     color: #4b5563;
     transition: all 0.2s ease;
     text-decoration: none;
 }
 
-.dropdown-item:hover {
+.brief-card .dropdown-item:hover {
     background: #f3f4f6;
     color: #1f2937;
 }
 
-.dropdown-item i {
+.brief-card .dropdown-item i {
     font-size: 1.1rem;
     width: 20px;
 }
 
-.dropdown-item i.fa-file-pdf { color: #ef4444; }
-.dropdown-item i.fa-file-word { color: #3b82f6; }
-.dropdown-item i.fa-file-alt { color: #6b7280; }
-.dropdown-item i.fa-file-code { color: #10b981; }
+.brief-card .dropdown-item i.fa-file-pdf { color: #ef4444; }
+.brief-card .dropdown-item i.fa-file-word { color: #3b82f6; }
+.brief-card .dropdown-item i.fa-file-alt { color: #6b7280; }
+.brief-card .dropdown-item i.fa-file-code { color: #10b981; }
 
-.brief-content {
-    padding: 2rem;
+/* Estilos para ícones de plataformas */
+.brief-card .platform-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    margin-right: 8px;
 }
 
-.content-section {
-    background: #f9fafb;
-    border-radius: 12px;
+.brief-card .platform-icon.fab.fa-slack { color: #36C5F0; }
+.brief-card .platform-icon.fab.fa-google-drive { color: #DB4437; }
+.brief-card .platform-icon.fab.fa-microsoft { color: #0078D4; }
+.brief-card .platform-icon.fab.fa-trello { color: #0079BF; }
+.brief-card .platform-icon.fas.fa-brain { color: #000000; }
+
+/* Estilos para o modal de integrações */
+.brief-card .modal-content {
+    background: #ffffff;
+    color: #1f2937;
+    border-radius: 0.75rem;
+}
+
+.brief-card .modal-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+}
+
+.brief-card .modal-title {
+    font-size: 1.25rem;
+    color: #1f2937;
+}
+
+.brief-card .modal-body {
     padding: 1.5rem;
+    color: #1f2937;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.brief-card .modal-body p {
+    margin: 0;
+    color: #1f2937 !important;
+}
+
+/* Estilos para o conteúdo do brief */
+.brief-card .brief-content {
+    padding: 1.5rem;
+}
+
+.brief-card .content-section {
     margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.content-section:last-child {
-    margin-bottom: 0;
-}
-
-.section-header {
+.brief-card .section-header {
     display: flex;
     align-items: center;
     gap: 0.8rem;
     margin-bottom: 1rem;
 }
 
-.section-header i {
-    font-size: 1.4rem;
-    color: #4f46e5;
+.brief-card .section-header i {
+    font-size: 1.2rem;
+    color: #6366f1;
 }
 
-.section-header h3 {
+.brief-card .section-header h3 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #1f2937;
 }
 
-.section-body {
+.brief-card .section-body {
     color: #4b5563;
     line-height: 1.6;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
 
+/* Ajustes de responsividade */
 @media (max-width: 768px) {
-    .brief-header {
+    .brief-card .brief-header {
+        padding: 1rem;
         flex-direction: column;
-        gap: 1rem;
-        text-align: center;
+        align-items: flex-start;
     }
-    
-    .brief-actions {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .action-btn {
+
+    .brief-card .brief-actions {
+        justify-content: flex-start;
         width: 100%;
-        justify-content: center;
+    }
+
+    .brief-card .action-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .brief-card .brief-content {
+        padding: 1rem;
+    }
+
+    .brief-card .content-section {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .brief-card .brief-title h2 {
+        font-size: 1.4rem;
+    }
+
+    .brief-card .brief-date {
+        font-size: 0.8rem;
+    }
+
+    .brief-card .action-btn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.7rem;
+    }
+
+    .brief-card .dropdown-menu {
+        min-width: 150px;
     }
 }
 </style>
 {% endblock %}
 
+{% block content %}
+<div class="container py-4">
+    <div class="brief-card">
+        <div class="brief-header">
+            <div class="brief-title">
+                <h2>{{ brief.brief_type }}</h2>
+                <span class="brief-date">{{ brief.created_at }}</span>
+            </div>
+            <div class="brief-actions">
+                <div class="action-group relative">
+                    <button type="button" class="action-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-export"></i>
+                        <span>Exportar</span>
+                    </button>
+                    <ul class="dropdown-menu hidden">
+                        {% if plan_data.export_formats %}
+                            {% for format in plan_data.export_formats %}
+                                {% if format == 'pdf' %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('export_brief_pdf', brief_id=brief.id) }}">
+                                            <i class="fas fa-file-pdf"></i>
+                                            <span>PDF</span>
+                                        </a>
+                                    </li>
+                                {% elif format == 'docx' %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('export_brief_docx', brief_id=brief.id) }}">
+                                            <i class="fas fa-file-word"></i>
+                                            <span>Word</span>
+                                        </a>
+                                    </li>
+                                {% elif format == 'txt' %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('export_brief_txt', brief_id=brief.id) }}">
+                                            <i class="fas fa-file-alt"></i>
+                                            <span>TXT</span>
+                                        </a>
+                                    </li>
+                                {% elif format == 'html' %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('export_brief_html', brief_id=brief.id) }}">
+                                            <i class="fas fa-file-code"></i>
+                                            <span>HTML</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+                <a href="{{ url_for('edit_brief', brief_id=brief.id) }}" class="action-btn edit-btn">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar</span>
+                </a>
+                <form action="{{ url_for('delete_brief', brief_id=brief.id) }}" method="POST" class="inline" onsubmit="return confirm('Tem certeza que deseja excluir este brief?');">
+                    <button type="submit" class="action-btn delete-btn">
+                        <i class="fas fa-trash"></i>
+                        <span>Excluir</span>
+                    </button>
+                </form>
+                <div class="action-group relative">
+                    <button type="button" class="action-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-plug"></i>
+                        <span>Integrações</span>
+                    </button>
+                    <ul class="dropdown-menu hidden">
+                        <li>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#integrationModal">
+                                <i class="fas fa-brain platform-icon"></i>
+                                <span>Notion</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#integrationModal">
+                                <i class="fab fa-slack platform-icon"></i>
+                                <span>Slack</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#integrationModal">
+                                <i class="fab fa-google-drive platform-icon"></i>
+                                <span>Google Drive</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#integrationModal">
+                                <i class="fab fa-microsoft platform-icon"></i>
+                                <span>Microsoft Teams</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#integrationModal">
+                                <i class="fab fa-trello platform-icon"></i>
+                                <span>Trello</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- Modal de Integrações -->
+                    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto" id="integrationModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog relative w-auto pointer-events-none max-w-lg mx-auto">
+                            <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white rounded-lg">
+                                <div class="modal-header flex items-center justify-between p-4 border-b border-gray-200 rounded-t-lg">
+                                    <h5 class="modal-title text-lg font-medium text-gray-900">Integrações</h5>
+                                    <button type="button" class="btn-close text-gray-500 hover:text-gray-700" data-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="modal-body p-6">
+                                    <p class="text-gray-700">As integrações estarão disponíveis em breve, a partir do plano Premium.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="brief-content">
+            <div class="content-section">
+                <div class="section-header flex items-center gap-2 mb-4">
+                    <i class="fas fa-file-alt text-indigo-600 text-lg"></i>
+                    <h3 class="text-base font-semibold text-gray-900">Texto Original</h3>
+                </div>
+                <div class="section-body prose text-gray-600">
+                    {{ brief.text|markdown|safe }}
+                </div>
+            </div>
+            <div class="content-section">
+                <div class="section-header flex items-center gap-2 mb-4">
+                    <i class="fas fa-check-circle text-indigo-600 text-lg"></i>
+                    <h3 class="text-base font-semibold text-gray-900">Resultado</h3>
+                </div>
+                <div class="section-body prose text-gray-600">
+                    {{ brief.result|markdown|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// JavaScript para dropdowns e modal
+document.addEventListener('DOMContentLoaded', function() {
+    // Dropdowns
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const dropdownMenu = this.nextElementSibling;
+            dropdownMenu.classList.toggle('hidden');
+        });
+    });
+
+    // Fechar dropdowns ao clicar fora
+    document.addEventListener('click', function(e) {
+        dropdownToggles.forEach(toggle => {
+            const dropdownMenu = toggle.nextElementSibling;
+            if (!toggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+    });
+
+    // Modal
+    const modalTriggers = document.querySelectorAll('[data-toggle="modal"]');
+    const modal = document.getElementById('integrationModal');
+    const closeButton = modal.querySelector('.btn-close');
+
+    modalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+        });
+    });
+
+    closeButton.addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+
+    // Fechar modal ao clicar fora
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+});
+</script>
 {% endblock %}

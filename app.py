@@ -58,8 +58,21 @@ from flask import send_file
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from docx import Document
-from docx.shared import Pt
-from flask import jsonify
+from docx.shared import Pt, RGBColor
+from docx.enum.style import WD_STYLE_TYPE
+from flask import jsonify, render_template_string
+
+# Lista de campos importantes que devem ser destacados
+IMPORTANT_FIELDS = [
+    'Público-Alvo:', 'Introdução:', 'Objetivo:', 'Descrição:', 'Resultado:',
+    'Status:', 'Tipo:', 'Template:', 'Data:', 'Imagem de Referência:',
+    'Campos Adicionais:', 'Descrição do Projeto:', 'Resultado do Briefing:',
+    'Informações do Briefing:', 'Campos Adicionais:'
+]
+
+# Função auxiliar para verificar se um texto é um campo importante
+def is_important_field(text):
+    return any(text.strip().startswith(field) for field in IMPORTANT_FIELDS)
 
 # Inicialização do Pyrebase para autenticação de usuário final
 firebase_config = {
@@ -87,7 +100,7 @@ PLANS = {
             'Suporte por email'
         ],
         'templates': ['classic'],
-        'export_formats': ['pdf'],
+        'export_formats': ['pdf', 'docx'],
         'ai_models': ['gemini']
     },
     'pro': {
@@ -706,22 +719,54 @@ def edit_brief(brief_id):
         return redirect(url_for('my_briefs'))
     brief['id'] = brief_id
     
+    # Obter informações do usuário
+    user_ref = db.reference(f'users/{user_id}')
+    user_data = user_ref.get()
+    
     if request.method == 'POST':
-        brief['brief_type'] = request.form.get('brief_type', brief['brief_type'])
-        brief['template'] = request.form.get('template', brief['template'])
-        brief['text'] = request.form.get('text', brief['text'])
-        brief['result'] = request.form.get('result', brief['result'])
-        db.reference(f'briefs/{user_id}/{brief_id}').update({
-            'brief_type': brief['brief_type'],
-            'template': brief['template'],
-            'text': brief['text'],
-            'result': brief['result'],
-            'status': request.form.get('status', brief.get('status', 'concluido')),
-        })
+        # Processar campos do formulário
+        brief_data = {
+            'brief_type': request.form.get('brief_type', brief['brief_type']),
+            'template': request.form.get('template', brief['template']),
+            'text': request.form.get('text', brief['text']),
+            'result': request.form.get('result', brief['result']),
+            'status': request.form.get('status', brief.get('status', 'concluido'))
+        }
+        
+        # Processar campos extras
+        extra_names = request.form.getlist('extra_name[]')
+        extra_values = request.form.getlist('extra_value[]')
+        extras = []
+        for name, value in zip(extra_names, extra_values):
+            if name and value:
+                extras.append({'name': name, 'value': value})
+        brief_data['extras'] = extras
+        
+        # Processar imagem
+        if 'image' in request.files:
+            image_file = request.files['image']
+            if image_file.filename:
+                # Salvar temporariamente
+                temp_image_path = os.path.join(tempfile.gettempdir(), 'temp_image.jpg')
+                image_file.save(temp_image_path)
+                
+                # Upload para o Firebase Storage
+                bucket = storage.bucket()
+                image_blob = bucket.blob(f'images/{uuid.uuid4()}.jpg')
+                image_blob.upload_from_filename(temp_image_path)
+                image_blob.make_public()
+                brief_data['image_url'] = image_blob.public_url
+                
+                # Limpar arquivo temporário
+                os.remove(temp_image_path)
+        
+        # Atualizar o brief no Firebase
+        db.reference(f'briefs/{user_id}/{brief_id}').update(brief_data)
+        
         flash('Brief atualizado com sucesso!', 'success')
         return redirect(url_for('view_brief', brief_id=brief_id))
     
-    return render_template('edit_brief.html', user=user_info, brief=brief)
+    return render_template('edit_brief.html', user=user_data, brief=brief)
 
 @app.route('/brief/<brief_id>/delete', methods=['POST'])
 @login_required
@@ -770,12 +815,54 @@ def api_generate_brief():
 
     try:
         data = request.get_json()
+        brief_id = data.get('brief_id')  # Novo campo para identificar brief existente
         text = data.get('text', '')
         brief_type = data.get('type')
         template = data.get('template')
         extras = data.get('extras', [])
         image_data = data.get('image')
         audio_data = data.get('audio')
+        
+        # Se brief_id foi fornecido, estamos editando um brief existente
+        if brief_id:
+            user_id = get_user_id()
+            brief_ref = db.reference(f'briefs/{user_id}/{brief_id}')
+            brief = brief_ref.get()
+            if not brief:
+                return jsonify({'error': 'Brief não encontrado'}), 404
+            
+            # Atualizar apenas os campos que foram fornecidos
+            updates = {}
+            if text:
+                updates['text'] = text
+            if brief_type:
+                updates['brief_type'] = brief_type
+            if template:
+                updates['template'] = template
+            if extras:
+                updates['extras'] = extras
+            
+            # Se houver nova imagem ou áudio, processar e atualizar
+            if image_data:
+                # Processar imagem (código existente)
+                # ...
+                updates['image_url'] = image_url
+                updates['image_analysis'] = image_analysis
+            
+            if audio_data:
+                # Processar áudio (código existente)
+                # ...
+                updates['audio_url'] = audio_url
+                updates['audio_text'] = audio_text
+            
+            # Atualizar o brief no Firebase
+            brief_ref.update(updates)
+            
+            # Recuperar o brief atualizado
+            brief = brief_ref.get()
+            return jsonify({'result': brief})
+
+        # Se não tem brief_id, estamos criando um novo brief (código existente)
 
         # Validar campos obrigatórios
         if not brief_type or not template:
@@ -917,19 +1004,18 @@ Por favor, crie um briefing detalhado e profissional que incorpore todas essas i
                 'image_analysis': image_analysis,
                 'brief_type': brief_type,
                 'template': template,
-                'extras': extras,
+                'extras': [{'name': extra['name'], 'value': extra['value']} for extra in extras],
                 'result': result,
                 'created_at': datetime.utcnow().isoformat() + 'Z',
                 'status': 'concluido',
             }
-            db.reference(f'briefs/{user_id}').push(brief_data)
+            brief_ref = db.reference(f'briefs/{user_id}').push(brief_data)
+            brief_data['id'] = brief_ref.key
 
-        return jsonify({'result': result})
+        return jsonify({'result': result, 'brief_id': brief_ref.key})
     except Exception as e:
         print(f"Erro ao gerar briefing: {str(e)}")
         return jsonify({'error': f'Erro ao gerar briefing: {str(e)}'}), 500
-
-@app.route('/brief/<brief_id>/export/pdf')
 def export_brief_pdf(brief_id):
     if 'user' not in session or 'user_email' not in session:
         flash('Faça login para acessar seus briefs.', 'warning')
@@ -967,90 +1053,515 @@ def export_brief_pdf(brief_id):
                 p.showPage()
                 y = height - 50
                 p.setFont('Helvetica', 12)
-            p.drawString(50, y, f"{key.capitalize()}: {value}")
-            y -= 18
-    p.save()
-    buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name=f"brief_{brief_id}.pdf", mimetype='application/pdf')
 
 @app.route('/brief/<brief_id>/export/docx')
+@login_required
 def export_brief_docx(brief_id):
-    if 'user' not in session or 'user_email' not in session:
-        flash('Faça login para acessar seus briefs.', 'warning')
-        return redirect(url_for('login'))
     user_id = get_user_id()
     brief = db.reference(f'briefs/{user_id}/{brief_id}').get()
     if not brief:
         flash('Brief não encontrado.', 'danger')
         return redirect(url_for('my_briefs'))
 
+    # Criar documento DOCX
     doc = Document()
-    doc.add_heading(f"Brief: {brief.get('title', 'Sem título')}", level=1)
-    for key, value in brief.items():
-        if key == 'id':
-            continue
-        doc.add_paragraph(f"{key.capitalize()}:", style='Heading2')
-        if isinstance(value, str):
-            for line in value.split('\n'):
-                doc.add_paragraph(line, style='Normal')
-        else:
-            doc.add_paragraph(str(value), style='Normal')
+    
+    # Estilo do título
+    title_style = doc.styles['Heading 1']
+    title_style.font.size = Pt(32)
+    title_style.font.bold = True
+    title_style.font.color.rgb = RGBColor(44, 62, 80)  # Cor azul escuro
+    
+    # Estilo dos cabeçalhos
+    heading_style = doc.styles['Heading 2']
+    heading_style.font.size = Pt(18)
+    heading_style.font.bold = True
+    heading_style.font.color.rgb = RGBColor(52, 152, 219)  # Cor azul
+    
+    # Estilo dos campos
+    field_style = doc.styles.add_style('Field', WD_STYLE_TYPE.PARAGRAPH)
+    field_style.font.size = Pt(14)
+    field_style.font.color.rgb = RGBColor(84, 153, 199)  # Cor azul claro
+    
+    # Adicionar título
+    title = doc.add_heading('Briefing', 0)
+    title.alignment = 1  # Centralizado
+    
+    # Adicionar informações básicas
+    doc.add_heading('Informações do Briefing', level=1)
+    doc.add_paragraph(f'Tipo: {brief.get("brief_type", "Não especificado")}', style='Field')
+    doc.add_paragraph(f'Template: {brief.get("template", "Não especificado")}', style='Field')
+    doc.add_paragraph(f'Data: {brief.get("created_at", "Não especificada")}', style='Field')
+    
+    # Adicionar descrição
+    doc.add_heading('Descrição do Projeto', level=1)
+    doc.add_paragraph(brief.get('text', 'Nenhuma descrição fornecida'))
+    
+    # Adicionar resultado
+    doc.add_heading('Resultado do Briefing', level=1)
+    doc.add_paragraph(brief.get('result', 'Nenhum resultado gerado'))
+    
+    # Adicionar campos extras
+    if brief.get('extras'):
+        doc.add_heading('Campos Adicionais', level=1)
+        for extra in brief['extras']:
+            doc.add_paragraph(f"{extra.get('name', '')}: {extra.get('value', '')}", style='Field')
+    
+    # Adicionar status
+    doc.add_heading('Status', level=1)
+    status_paragraph = doc.add_paragraph()
+    status_run = status_paragraph.add_run(brief.get('status', 'Não especificado'))
+    status_run.bold = True
+    status_run.font.color.rgb = RGBColor(39, 174, 96)  # Cor verde
+    
+    # Adicionar imagem se existir
+    if brief.get('image_url'):
+        try:
+            import requests
+            from docx.shared import Inches
+            response = requests.get(brief['image_url'])
+            if response.status_code == 200:
+                from io import BytesIO
+                image_data = BytesIO(response.content)
+                doc.add_heading('Imagem de Referência', level=1)
+                doc.add_picture(image_data, width=Inches(6))
+        except Exception as e:
+            print(f"Erro ao adicionar imagem: {str(e)}")
+    
+    # Salvar documento temporariamente
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+    doc.save(temp_file.name)
+    
+    # Enviar arquivo
+    return send_file(
+        temp_file.name,
+        as_attachment=True,
+        download_name=f'brief_{brief_id}.docx',
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
 
-    from io import BytesIO
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name=f"brief_{brief_id}.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+
+@app.route('/brief/<brief_id>/export/pdf')
+@login_required
+def export_brief_pdf(brief_id):
+    user_id = get_user_id()
+    brief = db.reference(f'briefs/{user_id}/{brief_id}').get()
+    if not brief:
+        flash('Brief não encontrado.', 'danger')
+        return redirect(url_for('my_briefs'))
+    
+    # Cores para formatação
+    TEXT_COLOR = (0.4, 0.4, 0.4)  # Cinza escuro
+    SECONDARY_COLOR = (0.2, 0.4, 0.5)  # Azul médio
+    SUCCESS_COLOR = (0.16, 0.8, 0.44)  # Verde
+    
+    # Configurações de página
+    PAGE_WIDTH = 595  # 8.27 polegadas
+    PAGE_HEIGHT = 842  # 11.69 polegadas
+    margin = 50
+    
+    # Criar arquivo temporário
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    c = canvas.Canvas(temp_file.name, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
+    
+    # Função para adicionar texto com quebra de linha e formatação
+    def add_text(text, y, font_size=12, line_height=16, max_width=500, color=TEXT_COLOR, bold=False):
+        c.setFont('Helvetica-Bold' if bold else 'Helvetica', font_size)
+        c.setFillColorRGB(*color)
+        if not text.strip():
+            return y
+            
+        # Separar texto em parágrafos
+        paragraphs = text.split('\n\n')
+        
+        for paragraph in paragraphs:
+            # Separar linhas
+            lines = paragraph.split('\n')
+            for line in lines:
+                # Separar em palavras
+                words = line.split()
+                if not words:
+                    y -= line_height  # Espaço para linha em branco
+                    continue
+                    
+                current_line = words[0]
+                for word in words[1:]:
+                    if c.stringWidth(current_line + ' ' + word) < max_width:
+                        current_line += ' ' + word
+                    else:
+                        if y < margin + 20:  # Se estiver chegando perto do fim da página
+                            c.showPage()  # Quebra de página
+                            y = PAGE_HEIGHT - margin  # Reinicia na nova página
+                            
+                        c.drawString(margin, y, current_line)
+                        y -= line_height
+                        current_line = word
+                
+                if y < margin + 20:  # Se estiver chegando perto do fim da página
+                    c.showPage()  # Quebra de página
+                    y = PAGE_HEIGHT - margin  # Reinicia na nova página
+                    
+                c.drawString(margin, y, current_line)
+                y -= line_height
+            
+            # Espaço adicional entre parágrafos
+            if y < margin + 20:  # Se estiver chegando perto do fim da página
+                c.showPage()  # Quebra de página
+                y = PAGE_HEIGHT - margin  # Reinicia na nova página
+                
+            y -= line_height
+        
+        return y
+    
+    # Função para adicionar seção com título
+    def add_section(title, content, y, font_size=12, line_height=16):
+        # Verificar se é um título principal (mais importante)
+        main_titles = [
+            'Briefing de Marketing:', 'Introdução:', 'Análise da Imagem:',
+            'Objetivos da Loja:', 'Público-Alvo:', 'Requisitos da Loja:',
+            'Produtos a Serem Oferecidos:', 'Estratégia de Marketing:',
+            'Campos Extras:', 'Conclusão:'
+        ]
+        
+        # Verificar se estamos chegando perto do fim da página
+        if y < margin + 60:  # Se estiver muito perto do fim
+            c.showPage()  # Quebra de página
+            y = PAGE_HEIGHT - margin  # Reinicia na nova página
+        
+        # Configurar estilo do título
+        if any(title.startswith(t) for t in main_titles):
+            c.setFont('Helvetica-Bold', 16)
+            c.setFillColorRGB(*SECONDARY_COLOR)
+            y -= 40  # Espaço maior para títulos principais
+        else:
+            c.setFont('Helvetica-Bold', 14)
+            c.setFillColorRGB(*SECONDARY_COLOR)
+            y -= 30
+        
+        # Desenhar título
+        c.drawString(margin, y, title)
+        y -= 20
+        
+        # Adicionar conteúdo se houver
+        if content:
+            # Verificar se o conteúdo tem listas (começa com * ou +)
+            if content.strip().startswith('* ') or content.strip().startswith('+ '):
+                # Para listas, usar fonte menor e espaçamento mais apertado
+                y = add_text(content, y, font_size=11, line_height=14)
+            else:
+                y = add_text(content, y, font_size, line_height)
+            y -= 20  # Espaço após o conteúdo
+        
+        return y
+    
+    # Função para adicionar imagem
+    def add_image(image_path, y, max_width=500, max_height=300):
+        try:
+            # Obter dimensões originais
+            image = Image.open(image_path)
+            width, height = image.size
+            
+            # Calcular proporção
+            ratio = min(max_width/width, max_height/height)
+            
+            # Calcular novas dimensões mantendo proporção
+            new_width = int(width * ratio)
+            new_height = int(height * ratio)
+            
+            # Desenhar imagem
+            c.drawImage(image_path, margin, y - new_height, width=new_width, height=new_height, preserveAspectRatio=True)
+            y -= new_height + 30  # Espaço para a imagem e abaixo dela
+            return y
+        except Exception as e:
+            print(f"Erro ao processar imagem: {str(e)}")
+            return y
+    
+    # Posição inicial
+    y = PAGE_HEIGHT - margin
+    
+    # Informações do Briefing
+    y = add_section('Informações do Briefing', '', y)
+    y = add_text(f"Tipo: {brief.get('brief_type', 'Não especificado')}", y, font_size=12, bold=True)
+    y = add_text(f"Template: {brief.get('template', 'Não especificado')}", y, font_size=12, bold=True)
+    y = add_text(f"Data: {brief.get('created_at', 'Não especificada')}", y, font_size=12, bold=True)
+    y -= 30  # Espaço adicional após informações
+    
+    # Descrição do Projeto
+    y = add_section('Descrição do Projeto', brief.get('text', 'Nenhuma descrição fornecida'), y)
+    
+    # Resultado do Briefing
+    y = add_section('Resultado do Briefing', brief.get('result', 'Nenhum resultado gerado'), y)
+    
+    # Imagem de Referência
+    if brief.get('image_url'):
+        try:
+            image = requests.get(brief.get('image_url'))
+            if image.status_code == 200:
+                image_path = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg').name
+                with open(image_path, 'wb') as f:
+                    f.write(image.content)
+                y = add_image(image_path, y)
+        except Exception as e:
+            print(f"Erro ao processar imagem: {str(e)}")
+    
+    # Campos Adicionais
+    if brief.get('extras'):
+        y = add_section('Campos Adicionais', '', y)
+        for extra in brief.get('extras', []):
+            y = add_text(f"{extra.get('name', '')}: {extra.get('value', '')}", y, font_size=12, bold=True)
+        y -= 20  # Espaço adicional após campos adicionais
+    
+    # Status
+    y = add_section('Status', '', y)
+    status = brief.get('status', 'Não especificado')
+    c.setFont('Helvetica-Bold', 16)
+    c.setFillColorRGB(*SUCCESS_COLOR)
+    c.drawString(margin, y, status)
+    
+    # Finalizar e salvar PDF
+    c.save()
+    
+    # Enviar arquivo
+    return send_file(
+        temp_file.name,
+        as_attachment=True,
+        download_name=f'brief_{brief_id}.pdf',
+        mimetype='application/pdf'
+    )
 
 @app.route('/brief/<brief_id>/export/txt')
 def export_brief_txt(brief_id):
-    if 'user' not in session or 'user_email' not in session:
-        flash('Faça login para acessar seus briefs.', 'warning')
-        return redirect(url_for('login'))
     user_id = get_user_id()
     brief = db.reference(f'briefs/{user_id}/{brief_id}').get()
     if not brief:
         flash('Brief não encontrado.', 'danger')
         return redirect(url_for('my_briefs'))
-    lines = [f"Brief: {brief.get('title', 'Sem título')}"]
-    for key, value in brief.items():
-        if key == 'id':
-            continue
-        lines.append(f"{key.capitalize()}:")
-        if isinstance(value, str):
-            lines.extend(value.split('\n'))
-        else:
-            lines.append(str(value))
+
+    # Criar conteúdo TXT formatado
+    lines = []
+    
+    # Título centralizado
+    title = "Briefing"
+    lines.append("".join("=" * 80))
+    lines.append(title.center(80))
+    lines.append("".join("=" * 80))
+    lines.append("")
+    
+    # Informações do Briefing
+    lines.append("INFORMAÇÕES DO BRIEFING")
+    lines.append("".join("-" * 80))
+    lines.append(f"Tipo: {brief.get('brief_type', 'Não especificado')}")
+    lines.append(f"Template: {brief.get('template', 'Não especificado')}")
+    lines.append(f"Data: {brief.get('created_at', 'Não especificada')}")
+    lines.append("")
+    
+    # Descrição do Projeto
+    lines.append("DESCRIÇÃO DO PROJETO")
+    lines.append("".join("-" * 80))
+    text = brief.get('text', 'Nenhuma descrição fornecida')
+    # Quebra de linha para melhor legibilidade
+    text_lines = text.split('\n')
+    for line in text_lines:
+        lines.append(f"  {line}")
+    lines.append("")
+    
+    # Resultado do Briefing
+    lines.append("RESULTADO DO BRIEFING")
+    lines.append("".join("-" * 80))
+    result = brief.get('result', 'Nenhum resultado gerado')
+    # Quebra de linha para melhor legibilidade
+    result_lines = result.split('\n')
+    for line in result_lines:
+        lines.append(f"  {line}")
+    lines.append("")
+    
+    # Campos Extras
+    if brief.get('extras'):
+        lines.append("CAMPOS ADICIONAIS")
+        lines.append("".join("-" * 80))
+        for extra in brief.get('extras', []):
+            lines.append(f"  {extra.get('name', '')}:")
+            lines.append(f"    {extra.get('value', '')}")
         lines.append("")
+    
+    # Status
+    lines.append("STATUS")
+    lines.append("".join("-" * 80))
+    lines.append(f"  {brief.get('status', 'Não especificado')}")
+    
+    # Juntar todas as linhas
     txt_content = '\n'.join(lines)
+    
     from io import BytesIO
     buffer = BytesIO(txt_content.encode('utf-8'))
-    return send_file(buffer, as_attachment=True, download_name=f"brief_{brief_id}.txt", mimetype='text/plain')
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"brief_{brief_id}.txt",
+        mimetype='text/plain'
+    )
 
 @app.route('/brief/<brief_id>/export/html')
+@login_required
 def export_brief_html(brief_id):
-    if 'user' not in session or 'user_email' not in session:
-        flash('Faça login para acessar seus briefs.', 'warning')
-        return redirect(url_for('login'))
     user_id = get_user_id()
     brief = db.reference(f'briefs/{user_id}/{brief_id}').get()
     if not brief:
         flash('Brief não encontrado.', 'danger')
         return redirect(url_for('my_briefs'))
-    html = [f"<h1>Brief: {brief.get('title', 'Sem título')}</h1>"]
-    for key, value in brief.items():
-        if key == 'id':
-            continue
-        html.append(f"<h2>{key.capitalize()}:</h2>")
-        if isinstance(value, str):
-            for line in value.split('\n'):
-                html.append(f"<p>{line}</p>")
-        else:
-            html.append(f"<p>{value}</p>")
-    html_content = '\n'.join(html)
-    from io import BytesIO
-    buffer = BytesIO(html_content.encode('utf-8'))
-    return send_file(buffer, as_attachment=True, download_name=f"brief_{brief_id}.html", mimetype='text/html')
+    
+    # Criar HTML com formatação
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Briefing</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                line-height: 1.8;
+                color: #333;
+                background-color: #f5f5f5;
+            }
+            .important {
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #2c3e50;
+                text-align: center;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+            }
+            h2 {
+                color: #3498db;
+                margin-top: 20px;
+                margin-bottom: 15px;
+                font-size: 1.5em;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 5px;
+            }
+            .section {
+                margin-bottom: 30px;
+            }
+            .field {
+                margin-bottom: 15px;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .field-name {
+                font-weight: bold;
+                color: #2c3e50;
+                min-width: 120px;
+                font-size: 1.1em;
+            }
+            .field-value {
+                flex: 1;
+                color: #555;
+            }
+            .status {
+                font-weight: bold;
+                color: #27ae60;
+                font-size: 1.2em;
+            }
+            .date {
+                color: #7f8c8d;
+                font-size: 0.9em;
+            }
+            .image-container {
+                margin: 20px 0;
+                text-align: center;
+            }
+            .image-container img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            .result {
+                white-space: pre-wrap;
+                line-height: 1.6;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Briefing</h1>
+            <div class="section">
+                <h2 class="important">Informações do Briefing</h2>
+                <div class="field">
+                    <span class="field-name important">Tipo:</span>
+                    <span class="field-value">{{ brief.get('brief_type', 'Não especificado') }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-name important">Template:</span>
+                    <span class="field-value">{{ brief.get('template', 'Não especificado') }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-name important">Data:</span>
+                    <span class="field-value date">{{ brief.get('created_at', 'Não especificada') }}</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="important">Descrição do Projeto</h2>
+                <p class="field-value">{{ brief.get('text', 'Nenhuma descrição fornecida') }}</p>
+            </div>
+            
+            <div class="section">
+                <h2 class="important">Resultado do Briefing</h2>
+                <div class="result">{{ brief.get('result', 'Nenhum resultado gerado') }}</div>
+            </div>
+            
+            {% if brief.get('image_url') %}
+            <div class="section">
+                <h2 class="important">Imagem de Referência</h2>
+                <div class="image-container">
+                    <img src="{{ brief.get('image_url') }}" alt="Imagem de referência">
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if brief.get('extras') %}
+            <div class="section">
+                <h2 class="important">Campos Adicionais</h2>
+                {% for extra in brief.get('extras', []) %}
+                <div class="field">
+                    <span class="field-name important">{{ extra.get('name', '') }}:</span>
+                    <span class="field-value">{{ extra.get('value', '') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="section">
+                <h2 class="important">Status</h2>
+                <p class="status">{{ brief.get('status', 'Não especificado') }}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return Response(
+        render_template_string(html_content, brief=brief),
+        mimetype='text/html',
+        headers={
+            'Content-Disposition': f'attachment; filename="brief_{brief_id}.html"'
+        }
+    )
 
 @app.route('/plans')
 def plans():
@@ -2078,84 +2589,15 @@ def export_brief_txt(options):
     except Exception as e:
         raise Exception(f'Erro ao gerar TXT: {str(e)}')
 
-def export_brief_html(options):
-    try:
-        # Obter dados do brief
-        brief_id = request.args.get('brief_id')
-        brief_ref = db.reference(f'briefs/{brief_id}')
-        brief_data = brief_ref.get()
-        
-        if not brief_data:
-            raise Exception('Brief não encontrado')
-        
-        # Criar HTML
-        html = []
-        html.append(f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>{brief_data['title']}</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; }}
-                h1 {{ color: #333; }}
-                h2 {{ color: #666; margin-top: 30px; }}
-                .metadata {{ color: #888; font-size: 0.9em; }}
-                .section {{ margin: 20px 0; }}
-                .image {{ max-width: 100%; margin: 10px 0; }}
-                .comment {{ background: #f5f5f5; padding: 10px; margin: 10px 0; }}
-            </style>
-        </head>
-        <body>
-            <h1>{brief_data['title']}</h1>
-        """)
-        
-        # Metadados (se solicitado)
-        if options['includeMetadata']:
-            html.append(f"""
-            <div class="metadata">
-                <p>Criado em: {brief_data.get('created_at', 'N/A')}</p>
-                <p>Última atualização: {brief_data.get('updated_at', 'N/A')}</p>
-            </div>
-            """)
-        
-        # Conteúdo
-        for section in brief_data.get('sections', []):
-            html.append(f"""
-            <div class="section">
-                <h2>{section['title']}</h2>
-                <div>{section['content']}</div>
-            """)
-            
-            # Imagens (se solicitado)
-            if options['includeImages'] and 'images' in section:
-                for image_url in section['images']:
-                    html.append(f'<img class="image" src="{image_url}" alt="Imagem">')
-            
-            html.append("</div>")
-        
-        # Comentários (se solicitado)
-        if options['includeComments'] and 'comments' in brief_data:
-            html.append('<h2>Comentários</h2>')
-            for comment in brief_data['comments']:
-                html.append(f"""
-                <div class="comment">
-                    <strong>{comment['user']}</strong> ({comment['date']})
-                    <p>{comment['text']}</p>
-                </div>
-                """)
-        
-        html.append("</body></html>")
-        
-        return Response(
-            "\n".join(html),
-            mimetype='text/html',
-            headers={
-                'Content-Disposition': f'attachment; filename={brief_data["title"]}.html'
-            }
-        )
-    except Exception as e:
-        raise Exception(f'Erro ao gerar HTML: {str(e)}')
+
+    
+    return Response(
+        html_content,
+        mimetype='text/html',
+        headers={
+            'Content-Disposition': f'attachment; filename="brief_{brief_id}.html"'
+        }
+    )
 
 @app.context_processor
 def inject_user_theme():

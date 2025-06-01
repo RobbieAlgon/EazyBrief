@@ -4,10 +4,10 @@
     {% if GA_MEASUREMENT_ID %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '{{ GA_MEASUREMENT_ID }}');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', '{{ GA_MEASUREMENT_ID }}');
     </script>
     {% endif %}
     <meta charset="UTF-8">
@@ -20,7 +20,7 @@
             color: #4338ca;
             font-weight: 800;
             letter-spacing: -0.02em;
-            text-shadow: 0 2px 8px rgba(67,56,202,0.12);
+            text-shadow: 0 2px 8px rgba(67, 56, 202, 0.12);
         }
         .prose strong {
             color: #059669;
@@ -28,55 +28,74 @@
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: 700;
-            box-shadow: 0 1px 2px rgba(5,150,105,0.08);
+            box-shadow: 0 1px 2px rgba(5, 150, 105, 0.08);
         }
         #sidebar {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            height: 100vh !important;
-            width: 256px !important;
-            z-index: 1000 !important;
-            transform: translateX(0) !important;
-            opacity: 1 !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 256px;
+            z-index: 1005;
+            transform: translateX(0);
+            opacity: 1;
+            padding-top: 4rem;
+            pointer-events: auto;
         }
         #sidebar-overlay {
-            display: none !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            background: rgba(0, 0, 0, 0.5) !important;
-            z-index: 999 !important;
-            transition: opacity 0.3s ease !important;
-            opacity: 0 !important;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1004;
+            transition: opacity 0.3s ease;
+            opacity: 0;
         }
         #sidebar-overlay.active {
-            display: block !important;
-            opacity: 1 !important;
+            display: block;
+            opacity: 1;
         }
         #sidebar-toggle {
-            z-index: 1001 !important;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1006;
+            padding: 0.5rem;
+        }
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1002;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         @media (max-width: 768px) {
             #sidebar {
-                transform: translateX(-100%) !important;
-                opacity: 0 !important;
+                transform: translateX(-100%);
+                opacity: 0;
+                padding-top: 0;
             }
             #sidebar.active {
                 transform: translateX(0) !important;
                 opacity: 1 !important;
+                pointer-events: auto;
             }
         }
         .main-content {
-            margin-left: 16rem !important;
-            transition: margin-left 0.3s ease !important;
+            margin-left: 16rem;
+            padding-top: 4rem;
+            transition: margin-left 0.3s ease;
         }
         @media (max-width: 768px) {
             .main-content {
-                margin-left: 0 !important;
+                margin-left: 0;
+                padding-top: 4rem;
             }
         }
     </style>
@@ -114,11 +133,22 @@
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             if (sidebar && sidebarOverlay) {
+                const isMobile = window.innerWidth <= 768;
+                const wasActive = sidebar.classList.contains('active');
                 sidebar.classList.toggle('active');
-                sidebarOverlay.classList.toggle('active');
-                console.log('base.html: Sidebar toggled:', sidebar.classList.contains('active') ? 'Active' : 'Inactive');
+                console.log('base.html: Sidebar toggled, active:', sidebar.classList.contains('active'));
+                if (isMobile) {
+                    sidebarOverlay.classList.toggle('active');
+                    console.log('base.html: Overlay toggled:', sidebarOverlay.classList.contains('active') ? 'Visible' : 'Hidden');
+                    console.log('base.html: Sidebar transform:', getComputedStyle(sidebar).transform);
+                }
+                if (!wasActive && sidebar.classList.contains('active')) {
+                    console.log('base.html: Sidebar opened');
+                } else {
+                    console.log('base.html: Sidebar closed');
+                }
             } else {
-                console.error('base.html: Sidebar ou overlay não encontrados');
+                console.error('base.html: Sidebar or overlay not found');
             }
         }
 
@@ -136,21 +166,21 @@
                     sidebarOverlay.classList.remove('active');
                     sidebar.style.transform = 'translateX(-100%)';
                     sidebar.style.opacity = '0';
-                    console.log('base.html: Sidebar inicializado como escondido (mobile)');
+                    console.log('base.html: Sidebar initialized as hidden (mobile)');
                 } else {
                     sidebar.classList.add('active');
                     sidebarOverlay.classList.remove('active');
                     sidebar.style.transform = 'translateX(0)';
                     sidebar.style.opacity = '1';
-                    console.log('base.html: Sidebar inicializado como visível (desktop)');
+                    console.log('base.html: Sidebar initialized as visible (desktop)');
                 }
             } else {
-                console.error('base.html: Erro ao inicializar sidebar: elementos não encontrados');
+                console.error('base.html: Error initializing sidebar: elements not found');
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('base.html: DOM carregado, inicializando sidebar');
+            console.log('base.html: DOM loaded, initializing sidebar');
             initializeSidebar();
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -159,37 +189,48 @@
                 sidebarToggle.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('base.html: Toggle button clicked');
                     toggleSidebar();
-                    console.log('base.html: Toggle clicado');
                 });
-                sidebarOverlay.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', (e) => {
+                    console.log('base.html: Overlay clicked, closing sidebar');
+                    toggleSidebar();
+                });
                 const navLinks = sidebar.querySelectorAll('nav a');
                 navLinks.forEach(link => {
-                    link.addEventListener('click', toggleSidebar);
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 768) {
+                            console.log('base.html: Menu link clicked (mobile), closing sidebar');
+                            toggleSidebar();
+                        } else {
+                            console.log('base.html: Menu link clicked (desktop), no action');
+                        }
+                    });
                 });
                 document.addEventListener('click', (e) => {
-                    if (sidebar.classList.contains('active')) {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
                         if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                            console.log('base.html: Click outside sidebar (mobile), closing');
                             toggleSidebar();
                         }
                     }
                 });
             } else {
-                console.error('base.html: Elementos do sidebar não encontrados no DOM');
+                console.error('base.html: Sidebar elements not found in DOM');
             }
         });
 
         window.addEventListener('resize', () => {
-            console.log('base.html: Janela redimensionada, reinicializando sidebar');
+            console.log('base.html: Window resized, reinitializing sidebar');
             initializeSidebar();
         });
     </script>
     <div class="flex min-h-screen">
         {% if session.get('user') and session.get('user_email') %}
-        <button id="sidebar-toggle" class="md:hidden fixed top-4 left-4 p-2 rounded-md bg-indigo-600 text-white">
+        <button id="sidebar-toggle" class="md:hidden fixed p-2 rounded-md bg-indigo-600 text-white">
             <i class="fas fa-bars"></i>
         </button>
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        <div id="sidebar-overlay"></div>
         <aside class="{{ sidebar_class }}" id="sidebar">
             <nav class="mt-4">
                 <a href="{{ url_for('dashboard') }}" class="{{ nav_link_class }}">
@@ -234,64 +275,64 @@
                     </div>
                     <div class="flex items-center">
                         {% if session.get('user') and session.get('user_email') %}
-                            <div class="relative">
-                                <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center space-x-2 focus:outline-none">
-                                    {% if user_photo %}
-                                        <img src="{{ user_photo }}" alt="Foto do perfil" class="h-8 w-8 rounded-full">
-                                    {% else %}
-                                        <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="flex flex-col items-start">
-                                        <span class="text-gray-700">{{ session.get('user_email') }}</span>
-                                        <span class="text-xs font-medium {% if user_plan == 'premium' %}text-yellow-600{% elif user_plan == 'pro' %}text-blue-600{% else %}text-gray-500{% endif %}">
-                                            Plano {{ plans[user_plan].name }}
-                                        </span>
-                                    </div>
-                                </button>
-                                <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 hidden bg-white" id="user-dropdown">
-                                    <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
-                                    <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</a>
+                        <div class="relative">
+                            <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center space-x-2 focus:outline-none">
+                                {% if user_photo %}
+                                <img src="{{ user_photo }}" alt="Foto do perfil" class="h-8 w-8 rounded-full">
+                                {% else %}
+                                <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                                    <i class="fas fa-user"></i>
                                 </div>
+                                {% endif %}
+                                <div class="flex flex-col items-start">
+                                    <span class="text-gray-700">{{ session.get('user_email') }}</span>
+                                    <span class="text-xs font-medium {% if user_plan == 'premium' %}text-yellow-600{% elif user_plan == 'pro' %}text-blue-600{% else %}text-gray-500{% endif %}">
+                                        Plano {{ plans[user_plan].name }}
+                                    </span>
+                                </div>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 hidden bg-white" id="user-dropdown">
+                                <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
+                                <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</a>
                             </div>
+                        </div>
                         {% else %}
-                            <div class="flex space-x-4">
-                                <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">Entrar</a>
-                                <a href="{{ url_for('signup') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Cadastrar</a>
-                            </div>
+                        <div class="flex space-x-4">
+                            <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">Entrar</a>
+                            <a href="{{ url_for('signup') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Cadastrar</a>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </header>
             <main class="{% if user_theme == 'dark' %}bg-gray-900 text-gray-100{% elif user_theme == 'blue' %}bg-blue-100{% elif user_theme == 'green' %}bg-green-100{% else %}bg-gray-100{% endif %} flex-1 overflow-x-hidden overflow-y-auto p-4">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            {% if user_theme == 'dark' %}
-                                {% if category == 'success' %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-green-900 text-green-200' %}
-                                {% elif category == 'error' %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-red-900 text-red-200' %}
-                                {% elif category == 'warning' %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-yellow-900 text-yellow-200' %}
-                                {% else %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-gray-800 text-gray-100' %}
-                                {% endif %}
-                            {% else %}
-                                {% if category == 'success' %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-green-100 text-green-800' %}
-                                {% elif category == 'error' %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-red-100 text-red-800' %}
-                                {% elif category == 'warning' %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-yellow-100 text-yellow-800' %}
-                                {% else %}
-                                    {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-gray-100 text-gray-800' %}
-                                {% endif %}
-                            {% endif %}
-                            <div class="{{ message_class }}">{{ message }}</div>
-                        {% endfor %}
+                {% if messages %}
+                {% for category, message in messages %}
+                {% if user_theme == 'dark' %}
+                    {% if category == 'success' %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-green-900 text-green-200 fixed top-4 right-4 z-[1100]' %}
+                    {% elif category == 'error' %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-red-900 text-red-200 fixed top-4 right-4 z-[1100]' %}
+                    {% elif category == 'warning' %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-yellow-900 text-yellow-200 fixed top-4 right-4 z-[1100]' %}
+                    {% else %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-gray-800 text-gray-100 fixed top-4 right-4 z-[1100]' %}
                     {% endif %}
+                {% else %}
+                    {% if category == 'success' %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-green-100 text-green-800 fixed top-4 right-4 z-[1100]' %}
+                    {% elif category == 'error' %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-red-100 text-red-800 fixed top-4 right-4 z-[1100]' %}
+                    {% elif category == 'warning' %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-yellow-100 text-yellow-800 fixed top-4 right-4 z-[1100]' %}
+                    {% else %}
+                        {% set message_class = 'mb-4 p-4 rounded-xl shadow-lg bg-gray-100 text-gray-800 fixed top-4 right-4 z-[1100]' %}
+                    {% endif %}
+                {% endif %}
+                <div class="{{ message_class }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
                 {% endwith %}
                 {% block content %}{% endblock %}
             </main>

@@ -1,21 +1,17 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Novo Brief - {{ plan_data.get('name', 'Gratuito') }} - EazyBrief{% endblock %}
-
-{% block page_title %}Criar Novo Brief - {{ plan_data.get('name', 'Gratuito') }}{% endblock %}
+{% block title %}Novo Brief - EazyBrief{% endblock %}
+{% block page_title %}Novo Brief{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Estilos do formulário */
     .input-section { 
         display: block; 
         margin-bottom: 1.5rem;
         padding: 1.25rem;
         background: white;
         border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        position: relative;
-        z-index: 10;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     .input-section h3 {
         font-size: 1.125rem;
@@ -41,7 +37,6 @@
         padding: 0.75rem;
         background: #F9FAFB;
         border-radius: 0.5rem;
-        z-index: 10;
     }
     .preview-container.hidden {
         display: none;
@@ -56,23 +51,52 @@
         flex: 1;
         min-width: 120px;
     }
-    /* Reforçar comportamento do sidebar */
+    .loading-spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+    }
+    .loading-spinner div {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: pulse 1.8s ease-in-out infinite;
+    }
+    .loading-spinner div:nth-child(1) {
+        background: #4338ca;
+        animation-delay: 0s;
+    }
+    .loading-spinner div:nth-child(2) {
+        background: #059669;
+        animation-delay: 0.6s;
+    }
+    .loading-spinner div:nth-child(3) {
+        background: #6366F1;
+        animation-delay: 1.2s;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.5); opacity: 0.3; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+        100% { transform: scale(0.5); opacity: 0.3; }
+    }
     #sidebar {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        height: 100vh !important;
-        width: 256px !important;
-        z-index: 1000 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 256px;
+        z-index: 1005;
     }
     @media (max-width: 768px) {
         #sidebar {
-            transform: translateX(-100%) !important;
-            opacity: 0 !important;
+            transform: translateX(-100%);
+            opacity: 0;
         }
         #sidebar.active {
-            transform: translateX(0) !important;
-            opacity: 1 !important;
+            transform: translateX(0);
+            opacity: 1;
         }
         .input-section {
             padding: 1rem;
@@ -173,321 +197,10 @@
 </style>
 {% endblock %}
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/marked@latest/marked.min.js"></script>
-<script>
-try {
-    console.log('new_brief.js: Iniciando carregamento');
-    let currentImageData = '';
-    let currentAudioData = null;
-    let mediaRecorder = null;
-    let audioChunks = [];
-
-    window.handleImageUpload = function(input) {
-        console.log('new_brief.js: handleImageUpload chamado');
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('imagePreview');
-                const previewImg = document.getElementById('imagePreviewImg');
-                if (preview && previewImg) {
-                    previewImg.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    console.log('new_brief.js: Imagem carregada com sucesso');
-                } else {
-                    console.error('new_brief.js: Elementos de preview de imagem não estão no arquivo');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    window.removeImage = function() {
-        console.log('new_brief.js: removeImage chamado');
-        const preview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('imagePreviewImg');
-        if (preview && previewImg) {
-            previewImg.src = '';
-            preview.classList.add('hidden');
-            currentImageData = null;
-            const imageInput = document.getElementById('imageFile');
-            if (imageInput) imageInput.value = '';
-            console.log('new_brief.js: Imagem removida');
-        }
-    }
-
-    window.handleAudioUpload = function(input) {
-        console.log('new_brief.js: handleAudioUpload chamado');
-        const file = input.files[0];
-        const audioPreview = document.getElementById('audioPreview');
-        if (file && audioPreview) {
-            const audioElement = audioPreview.querySelector('audio');
-            if (audioElement) {
-                currentAudioData = file;
-                audioElement.src = URL.createObjectURL(file);
-                audioPreview.classList.remove('hidden');
-                console.log('new_brief.js: Áudio carregado');
-            }
-        }
-    }
-
-    window.removeAudio = function() {
-        console.log('new_brief.js: removeAudio chamado');
-        const audioFile = document.getElementById('audioFile');
-        const audioPreview = document.getElementById('audioPreview');
-        if (audioFile && audioPreview) {
-            audioFile.value = '';
-            const audioElement = audioPreview.querySelector('audio');
-            if (audioElement) {
-                audioElement.src = '';
-                audioPreview.classList.add('hidden');
-                currentAudioData = null;
-                console.log('new_brief.js: Áudio removido');
-            }
-        }
-    }
-
-    window.startAudioRecording = async function() {
-        console.log('new_brief.js: startAudioRecording chamado');
-        const recordButton = document.getElementById('recordButton');
-        const recordButtonText = document.getElementById('recordButtonText');
-        const audioStatus = document.getElementById('audioStatus');
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            recordButton.classList.remove('bg-red-600');
-            recordButton.classList.add('bg-indigo-600');
-            recordButtonText.textContent = 'Gravar Áudio';
-            audioStatus.textContent = 'Processando áudio...';
-        } else {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/m4a' });
-                    currentAudioData = audioBlob;
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audioPreview = document.getElementById('audioPreview');
-                    const audioElement = audioPreview.querySelector('audio');
-                    if (audioElement) {
-                        audioElement.src = audioUrl;
-                        audioPreview.classList.remove('hidden');
-                    }
-                    audioStatus.textContent = 'Áudio gravado com sucesso!';
-                };
-                mediaRecorder.start();
-                recordButton.classList.remove('bg-indigo-600');
-                recordButton.classList.add('bg-red-600');
-                recordButtonText.textContent = 'Parar Gravação';
-                audioStatus.textContent = 'Gravando...';
-                console.log('new_brief.js: Gravação iniciada');
-            } catch (error) {
-                console.error('new_brief.js: Erro ao acessar o microfone:', error);
-                audioStatus.textContent = 'Erro ao acessar o microfone';
-            }
-        }
-    }
-
-    let extraFieldId = 0;
-    window.addExtraField = function() {
-        console.log('new_brief.js: addExtraField chamado');
-        extraFieldId++;
-        const container = document.createElement('div');
-        container.className = 'extra-field fade-in';
-        container.id = `extra-field-${extraFieldId}`;
-        container.innerHTML = `
-            <input type="text" placeholder="Nome do campo" 
-                   class="form-control p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-            <input type="text" placeholder="Valor" 
-                   class="form-control p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-            <button type="button" class="text-red-600 hover:text-red-700 p-2">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        container.querySelector('button').addEventListener('click', () => container.remove());
-        const extraFields = document.getElementById('extra-fields');
-        if (extraFields) {
-            extraFields.appendChild(container);
-            console.log('new_brief.js: Campo extra adicionado');
-        }
-    }
-
-    window.getExtras = function() {
-        console.log('new_brief.js: getExtras chamado');
-        const extras = [];
-        document.querySelectorAll('#extra-fields > div').forEach(field => {
-            const inputs = field.querySelectorAll('input');
-            const name = inputs[0].value;
-            const value = inputs[1].value;
-            if (name && value) extras.push({ name, value });
-        });
-        return extras;
-    }
-
-    window.generateBrief = async function() {
-        console.log('new_brief.js: generateBrief chamado');
-        const text = document.getElementById('brief-text').value;
-        const briefType = document.getElementById('brief-type').value;
-        const template = document.getElementById('template').value;
-        const extras = window.getExtras();
-        const audioFile = document.getElementById('audioFile').files[0];
-        const imageFile = document.getElementById('imageFile').files[0];
-        
-        if (!text && !audioFile && !imageFile) {
-            window.showError('Por favor, forneça pelo menos um formato (texto, áudio ou imagem)');
-            return;
-        }
-        if (!briefType || !template) {
-            window.showError('Por favor, selecione o tipo e o template do briefing');
-            return;
-        }
-
-        window.showLoading();
-        try {
-            let audioData = '';
-            let imageData = '';
-            if (audioFile) audioData = await window.blobToBase64(audioFile);
-            if (imageFile) imageData = await window.blobToBase64(imageFile);
-            
-            const response = await fetch('/api/generate-brief', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text, type: briefType, template, extras, image: imageData, audio: audioData
-                })
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                window.showResult(data.result);
-            } else {
-                window.showError(data.error || 'Erro ao gerar briefing');
-            }
-        } catch (error) {
-            console.error('new_brief.js: Erro ao gerar briefing:', error);
-            window.showError('Erro ao comunicar com o servidor');
-        } finally {
-            window.hideLoading();
-        }
-    }
-
-    window.blobToBase64 = function(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    }
-
-    window.showLoading = function() {
-        console.log('new_brief.js: showLoading chamado');
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-[1002]';
-        loadingDiv.innerHTML = `
-            <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <p class="mt-3 text-base font-medium text-gray-700">Gerando briefing...</p>
-        `;
-        document.body.appendChild(loadingDiv);
-    }
-
-    window.hideLoading = function() {
-        console.log('new_brief.js: hideLoading chamado');
-        const loadingDiv = document.querySelector('.fixed.inset-0');
-        if (loadingDiv) loadingDiv.remove();
-    }
-
-    window.showError = function(message) {
-        console.log('new_brief.js: showError chamado:', message);
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-[1002] animate-fade-in';
-        errorDiv.textContent = message;
-        document.body.appendChild(errorDiv);
-        setTimeout(() => errorDiv.remove(), 4000);
-    }
-
-    window.showResult = function(result) {
-        console.log('new_brief.js: showResult chamado');
-        const resultSection = document.getElementById('result-section');
-        const briefResult = document.getElementById('brief-result');
-        const briefForm = document.getElementById('brief-form');
-        if (resultSection && briefResult && briefForm) {
-            briefResult.innerHTML = marked.parse(result);
-            resultSection.classList.remove('hidden');
-            briefForm.style.display = 'none';
-            resultSection.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    window.editBrief = function() {
-        console.log('new_brief.js: editBrief chamado');
-        const resultSection = document.getElementById('result-section');
-        const briefForm = document.getElementById('brief-form');
-        if (resultSection && briefForm) {
-            resultSection.classList.add('hidden');
-            briefForm.style.display = '';
-            briefForm.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    window.saveBrief = function() {
-        console.log('new_brief.js: saveBrief chamado');
-        window.showError('Briefing salvo com sucesso! (Funcionalidade de persistência pode ser implementada)');
-    }
-
-    window.cancelBrief = function() {
-        console.log('new_brief.js: cancelBrief chamado');
-        const resultSection = document.getElementById('result-section');
-        const briefForm = document.getElementById('brief-form');
-        const briefResult = document.getElementById('brief-result');
-        if (resultSection && briefForm && briefResult) {
-            resultSection.classList.add('hidden');
-            briefForm.style.display = '';
-            briefResult.innerHTML = '';
-            briefForm.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('new_brief.js: DOM carregado');
-        window.addExtraField();
-        const recordButton = document.getElementById('recordButton');
-        const recordButtonText = document.getElementById('recordButtonText');
-        if (recordButton && recordButtonText) {
-            recordButton.addEventListener('click', window.startAudioRecording);
-            console.log('new_brief.js: Evento de gravação de áudio registrado');
-        } else {
-            console.error('new_brief.js: Botão de gravação não encontrado');
-        }
-        // Registrar evento de submit do formulário
-        const briefForm = document.getElementById('brief-form');
-        if (briefForm) {
-            briefForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                window.generateBrief();
-                console.log('new_brief.js: Formulário enviado');
-            });
-            console.log('new_brief.js: Evento de submit do formulário registrado');
-        } else {
-            console.error('new_brief.js: Formulário não encontrado');
-        }
-        // Forçar inicialização do sidebar
-        if (typeof initializeSidebar === 'function') {
-            initializeSidebar();
-            console.log('new_brief.js: initializeSidebar chamado');
-        }
-    });
-} catch (error) {
-    console.error('new_brief.js: Erro no script:', error);
-}
-</script>
-{% endblock %}
-
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <form id="brief-form" class="space-y-4">
+    <input type="hidden" id="brief_id" name="brief_id">
         <div class="input-section">
             <h3><i class="fas fa-file-alt"></i>Texto</h3>
             <textarea id="brief-text" 
@@ -541,24 +254,21 @@ try {
                     <label for="template" class="block text-sm font-medium text-gray-700 mb-1">Template</label>
                     <select id="template" class="form-control w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                         <option value="">Selecione um template</option>
-                        <option value="padrao">Padrão</option>
-                        <option value="profissional">Profissional</option>
-                        <option value="moderno">Moderno</option>
-                        <option value="simples">Simples</option>
+                        <option value="Clássico">Clássico</option>
+                        <option value="Visual">Visual</option>
+                        <option value="Minimalista">Minimalista</option>
                     </select>
                 </div>
                 <div>
                     <label for="brief-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Briefing</label>
                     <select id="brief-type" class="form-control w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Selecione o tipo</option>
-                        <option value="marketing">Marketing</option>
-                        <option value="design">Design</option>
-                        <option value="conteudo">Conteúdo</option>
-                        <option value="vendas">Vendas</option>
-                        <option value="outros">Outros</option>
-                        {% if 'social-media' in plan_data.features %}
-                        <option value="social-media">Social Media</option>
-                        {% endif %}
+                        <option value="">Selecione um tipo</option>
+                        <option value="Design Gráfico">Design Gráfico</option>
+                        <option value="Marketing Digital">Marketing Digital</option>
+                        <option value="Desenvolvimento Web">Desenvolvimento Web</option>
+                        <option value="Mídias Sociais">Mídias Sociais</option>
+                        <option value="Produção de Vídeo">Produção de Vídeo</option>
+                        <option value="Personalizado">Personalizado</option>
                     </select>
                 </div>
             </div>
@@ -599,4 +309,351 @@ try {
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked@latest/marked.min.js"></script>
+<script>
+try {
+    console.log('new_brief.js: Initializing');
+    let currentImageData = '';
+    let currentAudioData = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+
+    window.handleImageUpload = function(input) {
+        console.log('new_brief.js: handleImageUpload called');
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                const previewImg = document.getElementById('imagePreviewImg');
+                if (preview && previewImg) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    currentImageData = e.target.result;
+                    console.log('new_brief.js: Image loaded successfully');
+                } else {
+                    console.error('new_brief.js: Image preview elements not found');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.removeImage = function() {
+        console.log('new_brief.js: removeImage called');
+        const preview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('imagePreviewImg');
+        if (preview && previewImg) {
+            previewImg.src = '';
+            preview.classList.add('hidden');
+            currentImageData = '';
+            const imageInput = document.getElementById('imageFile');
+            if (imageInput) imageInput.value = '';
+            console.log('new_brief.js: Image removed');
+        }
+    };
+
+    window.handleAudioUpload = function(input) {
+        console.log('new_brief.js: handleAudioUpload called');
+        const file = input.files[0];
+        const audioPreview = document.getElementById('audioPreview');
+        if (file && audioPreview) {
+            const audioElement = audioPreview.querySelector('audio');
+            if (audioElement) {
+                currentAudioData = file;
+                audioElement.src = URL.createObjectURL(file);
+                audioPreview.classList.remove('hidden');
+                console.log('new_brief.js: Audio loaded');
+            }
+        }
+    };
+
+    window.removeAudio = function() {
+        console.log('new_brief.js: removeAudio called');
+        const audioFile = document.getElementById('audioFile');
+        const audioPreview = document.getElementById('audioPreview');
+        if (audioFile && audioPreview) {
+            audioFile.value = '';
+            const audioElement = audioPreview.querySelector('audio');
+            if (audioElement) {
+                audioElement.src = '';
+                audioPreview.classList.add('hidden');
+                currentAudioData = null;
+                console.log('new_brief.js: Audio removed');
+            }
+        }
+    };
+
+    window.startAudioRecording = async function() {
+        console.log('new_brief.js: startAudioRecording called');
+        const recordButton = document.getElementById('recordButton');
+        const recordButtonText = document.getElementById('recordButtonText');
+        const audioStatus = document.getElementById('audioStatus');
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            recordButton.classList.remove('bg-red-600');
+            recordButton.classList.add('bg-indigo-600');
+            recordButtonText.textContent = 'Gravar Áudio';
+            audioStatus.textContent = 'Processando áudio...';
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/m4a' });
+                    currentAudioData = audioBlob;
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioPreview = document.getElementById('audioPreview');
+                    const audioElement = audioPreview.querySelector('audio');
+                    if (audioElement) {
+                        audioElement.src = audioUrl;
+                        audioPreview.classList.remove('hidden');
+                    }
+                    audioStatus.textContent = 'Áudio gravado com sucesso!';
+                };
+                mediaRecorder.start();
+                recordButton.classList.remove('bg-indigo-600');
+                recordButton.classList.add('bg-red-600');
+                recordButtonText.textContent = 'Parar Gravação';
+                audioStatus.textContent = 'Gravando...';
+                console.log('new_brief.js: Recording started');
+            } catch (error) {
+                console.error('new_brief.js: Error accessing microphone:', error);
+                audioStatus.textContent = 'Erro ao acessar o microfone';
+            }
+        }
+    };
+
+    let extraFieldId = 0;
+    window.addExtraField = function() {
+        console.log('new_brief.js: addExtraField called');
+        extraFieldId++;
+        const container = document.createElement('div');
+        container.className = 'extra-field fade-in';
+        container.id = `extra-field-${extraFieldId}`;
+        container.innerHTML = `
+            <input type="text" placeholder="Nome do campo" 
+                   class="form-control p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <input type="text" placeholder="Valor" 
+                   class="form-control p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <button type="button" class="text-red-600 hover:text-red-700 p-2">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        container.querySelector('button').addEventListener('click', () => container.remove());
+        const extraFields = document.getElementById('extra-fields');
+        if (extraFields) {
+            extraFields.appendChild(container);
+            console.log('new_brief.js: Extra field added');
+        }
+    };
+
+    window.getExtras = function() {
+        console.log('new_brief.js: getExtras called');
+        const extras = [];
+        document.querySelectorAll('#extra-fields > div').forEach(field => {
+            const inputs = field.querySelectorAll('input');
+            const name = inputs[0].value;
+            const value = inputs[1].value;
+            if (name && value) extras.push({ name, value });
+        });
+        return extras;
+    };
+
+    window.generateBrief = async function() {
+        console.log('new_brief.js: generateBrief called');
+        const text = document.getElementById('brief-text').value;
+        const briefType = document.getElementById('brief-type').value;
+        const template = document.getElementById('template').value;
+        const extras = window.getExtras();
+        const audioFile = document.getElementById('audioFile').files[0];
+        const imageFile = document.getElementById('imageFile').files[0];
+        const briefId = document.getElementById('brief_id');
+
+        if (!text && !audioFile && !imageFile) {
+            window.showError('Por favor, forneça pelo menos um formato (texto, áudio ou imagem)');
+            return;
+        }
+        if (!briefType || !template) {
+            window.showError('Por favor, selecione o tipo e o template do briefing');
+            return;
+        }
+
+        window.showLoading();
+        try {
+            let audioData = '';
+            let imageData = '';
+            if (audioFile) {
+                audioData = await window.blobToBase64(audioFile);
+            }
+            if (imageFile) {
+                imageData = await window.blobToBase64(imageFile);
+            }
+
+            const response = await fetch('/api/generate-brief', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text,
+                    type: briefType,
+                    template,
+                    extras,
+                    image: imageData,
+                    audio: audioData,
+                    brief_id: briefId ? briefId.value : null
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                window.showResult(data.result);
+                if (briefId && !briefId.value) {
+                    briefId.value = data.brief_id;
+                }
+                if (briefId && briefId.value) {
+                    window.showSuccess('Brief atualizado com sucesso!');
+                }
+            } else {
+                window.showError(data.error || 'Erro ao gerar briefing');
+            }
+        } catch (error) {
+            console.error('new_brief.js: Error generating brief:', error);
+            window.showError('Erro ao comunicar com o servidor');
+        } finally {
+            window.hideLoading();
+        }
+    };
+
+    window.blobToBase64 = function(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
+
+    window.showLoading = function() {
+        console.log('new_brief.js: showLoading called');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'fixed top-0 left-0 right-0 bottom-0 bg-opacity-90 flex flex-col items-center justify-center z-[1100]';
+        const theme = document.body.classList.contains('bg-gray-900') ? 'dark' :
+                      document.body.classList.contains('bg-blue-100') ? 'blue' :
+                      document.body.classList.contains('bg-green-100') ? 'green' : 'default';
+        const bgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-white';
+        const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-700';
+        loadingDiv.classList.add(bgColor);
+        loadingDiv.innerHTML = `
+            <div class="loading-spinner">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <p class="mt-4 text-lg font-medium ${textColor} animate-pulse">Gerando briefing...</p>
+        `;
+        document.body.appendChild(loadingDiv);
+    };
+
+    window.hideLoading = function() {
+        console.log('new_brief.js: hideLoading called');
+        const loadingDiv = document.querySelector('.fixed.top-0.left-0.right-0.bottom-0');
+        if (loadingDiv) loadingDiv.remove();
+    };
+
+    window.showError = function(message) {
+        console.log('new_brief.js: showError called:', message);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-[1100] animate-fade-in';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => errorDiv.remove(), 4000);
+    };
+
+    window.showSuccess = function(message) {
+        console.log('new_brief.js: showSuccess called:', message);
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-[1100] animate-fade-in';
+        successDiv.textContent = message;
+        document.body.appendChild(successDiv);
+        setTimeout(() => successDiv.remove(), 4000);
+    };
+
+    window.showResult = function(result) {
+        console.log('new_brief.js: showResult called');
+        const resultSection = document.getElementById('result-section');
+        const briefResult = document.getElementById('brief-result');
+        const briefForm = document.getElementById('brief-form');
+        if (resultSection && briefResult && briefForm) {
+            briefResult.innerHTML = marked.parse(result);
+            resultSection.classList.remove('hidden');
+            briefForm.style.display = 'none';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    window.editBrief = function() {
+        console.log('new_brief.js: editBrief called');
+        const resultSection = document.getElementById('result-section');
+        const briefForm = document.getElementById('brief-form');
+        if (resultSection && briefForm) {
+            resultSection.classList.add('hidden');
+            briefForm.style.display = '';
+            briefForm.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    window.saveBrief = function() {
+        console.log('new_brief.js: saveBrief called');
+        window.showSuccess('Briefing salvo com sucesso!');
+    };
+
+    window.cancelBrief = function() {
+        console.log('new_brief.js: cancelBrief called');
+        const resultSection = document.getElementById('result-section');
+        const briefForm = document.getElementById('brief-form');
+        const briefResult = document.getElementById('brief-result');
+        if (resultSection && briefForm && briefResult) {
+            resultSection.classList.add('hidden');
+            briefForm.style.display = '';
+            briefResult.innerHTML = '';
+            briefForm.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('new_brief.js: DOM loaded');
+        window.addExtraField();
+        const recordButton = document.getElementById('recordButton');
+        const recordButtonText = document.getElementById('recordButtonText');
+        if (recordButton && recordButtonText) {
+            recordButton.addEventListener('click', window.startAudioRecording);
+            console.log('new_brief.js: Audio recording event registered');
+        } else {
+            console.error('new_brief.js: Record button not found');
+        }
+        const briefForm = document.getElementById('brief-form');
+        if (briefForm) {
+            briefForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                window.generateBrief();
+                console.log('new_brief.js: Form submitted');
+            });
+            console.log('new_brief.js: Form submit event registered');
+        } else {
+            console.error('new_brief.js: Form not found');
+        }
+        if (typeof initializeSidebar === 'function') {
+            initializeSidebar();
+            console.log('new_brief.js: initializeSidebar called');
+        }
+    });
+} catch (error) {
+    console.error('new_brief.js: Script error:', error);
+}
+</script>
 {% endblock %}

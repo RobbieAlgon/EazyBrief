@@ -30,6 +30,11 @@
         .animate-float {
             animation: float 6s ease-in-out infinite;
         }
+         .fix_t{
+            position: absolute;
+            z-index: 5000;
+            height: 8rem;
+        }
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
@@ -211,7 +216,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief Logo" class="h-12 w-auto">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief Logo" class="fix_t">
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="{{ url_for('login') }}" class="text-gray-600 hover:text-gray-900">Entrar</a>
@@ -241,9 +246,7 @@
                     </a>
                 </div>
             </div>
-            <div class="mt-16 relative">
-                <img src="{{ url_for('static', filename='images/dashboard-preview.png') }}" alt="Dashboard Preview" class="rounded-lg shadow-2xl mx-auto animate-float">
-            </div>
+            
         </div>
     </section>
 
@@ -292,7 +295,7 @@
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            3 briefs por mês
+                            3 dias de teste gratis
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
@@ -465,8 +468,8 @@
                 <div>
                     <h4 class="text-white font-semibold mb-4">Legal</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="hover:text-white">Termos de Uso</a></li>
-                        <li><a href="#" class="hover:text-white">Privacidade</a></li>
+                        <li><a href="{{ url_for('legal') }}" class="hover:text-white">Termos de Uso</a></li>
+                        <li><a href="{{ url_for('legal') }}" class="hover:text-white">Privacidade</a></li>
                         <li><a href="#" class="hover:text-white">Cookies</a></li>
                     </ul>
                 </div>

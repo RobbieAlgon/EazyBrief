@@ -75,6 +75,17 @@
             background: white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        .fix_t{
+            position: absolute;
+            z-index: 5000;
+            height: 8rem;
+        }
+        .fix_t2{
+            position: absolute;
+            z-index: 5000;
+            height: 8rem;
+            top: 0rem;
+        }
         @media (max-width: 768px) {
             #sidebar {
                 transform: translateX(-100%);
@@ -233,6 +244,7 @@
         <div id="sidebar-overlay"></div>
         <aside class="{{ sidebar_class }}" id="sidebar">
             <nav class="mt-4">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief" class="fix_t2">
                 <a href="{{ url_for('dashboard') }}" class="{{ nav_link_class }}">
                     <i class="fas fa-home mr-2"></i>Dashboard
                 </a>
@@ -249,6 +261,9 @@
                         {{ notification_count }}
                     </span>
                     {% endif %}
+                </a>
+                <a href="{{ url_for('plans') }}" class="{{ nav_link_class }}">
+                    <i class="fas fa-usd mr-3"></i>Preços
                 </a>
                 <a href="{{ url_for('support') }}" class="{{ nav_link_class }}">
                     <i class="fas fa-headset mr-3"></i>Suporte
@@ -269,6 +284,7 @@
             <header class="bg-white shadow-sm">
                 <div class="flex items-center h-16 px-4 sm:px-6 lg:px-8">
                     <div class="flex-1 flex items-center">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief" class="fix_t">
                         <div class="flex items-center space-x-4">
                             <span class="text-xl font-bold text-gray-900">{% block page_title %}{% endblock %}</span>
                         </div>

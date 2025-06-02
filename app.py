@@ -720,10 +720,10 @@ def view_brief(brief_id):
         return redirect(url_for('my_briefs'))
     
     # Obter informações do plano do usuário
-    plan, _, _, user_data = get_user_plan_info(user_id)
+    plan, _, _, user_data, free_trial_used = get_user_plan_info(user_id)
     
     brief['id'] = brief_id
-    return render_template('view_brief.html', brief=brief, plan_data=PLANS.get(plan, PLANS['free']))
+    return render_template('view_brief.html', brief=brief,free_trial_used=free_trial_used, plan_data=PLANS.get(plan, PLANS['free']))
 
 @app.route('/brief/<brief_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -1832,6 +1832,8 @@ ADMINS = [
 
 def is_admin(email):
     return email and email.lower() in ADMINS
+@app.route("/admin")
+@guest_required
 def admin_dashboard():
     if 'user_email' not in session or not is_admin(session['user_email']):
         flash('Acesso restrito ao administrador.', 'danger')
@@ -1847,8 +1849,9 @@ def admin_dashboard():
         for u in users_data.values()
     )
     
+    user_id = get_user_id()
     # Obter informações do plano do usuário
-    plan, _, _, _ = get_user_plan_info(session['user_id'])
+    plan, _, _, _, free_trial_used = get_user_plan_info(user_id)
     plan_data = PLANS.get(plan, PLANS['free'])
     
     return render_template(
@@ -1859,7 +1862,8 @@ def admin_dashboard():
         briefs_this_month=briefs_this_month,
         users=users_data,
         PLANS=PLANS,
-        plan_data=plan_data
+        plan_data=plan_data,
+        free_trial_used=free_trial_used
     )
 def inject_ga_measurement_id():
     return {'GA_MEASUREMENT_ID': os.getenv('GA_MEASUREMENT_ID', '')}
@@ -1990,7 +1994,7 @@ def contact():
 @login_required
 def status():
     user_id = get_user_id()
-    plan, _, _, _ = get_user_plan_info(user_id)
+    plan, _, _, _, free_trial_used = get_user_plan_info(user_id)
     plan_data = PLANS.get(plan, PLANS['free'])
     
     # Obter status atual dos componentes
@@ -2009,7 +2013,8 @@ def status():
         auth_status=auth_status,
         payment_status=payment_status,
         incidents=incidents,
-        plan_data=plan_data
+        plan_data=plan_data,
+        free_trial_used=free_trial_used
     )
 
 @app.route('/api/status')

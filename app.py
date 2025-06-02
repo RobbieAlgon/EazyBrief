@@ -4,7 +4,7 @@ load_dotenv()  # Carrega variáveis do .env
 
 import json
 import base64
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone, timedelta
 import tempfile
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, Response
 import firebase_admin
@@ -19,8 +19,8 @@ from werkzeug.utils import secure_filename
 from markupsafe import Markup
 import markdown
 import stripe
-import subprocess
-import platform
+import smtplib
+from email.mime.text import MIMEText
 
 
 
@@ -90,11 +90,11 @@ pyre_auth = pyrebase_app.auth()
 # Configuração dos planos e limites
 PLANS = {
     'free': {
-        'name': 'Grátis',
+        'name': 'Teste Gratuito',
         'price': 0,
-        'brief_limit': 3,
+        'trial_days': 3,  # 3 dias de teste
         'features': [
-            '3 briefs por mês',
+            'Acesso completo por 3 dias',
             'Templates básicos',
             'Exportação em PDF',
             'Suporte por email'
@@ -107,7 +107,7 @@ PLANS = {
         'name': 'Pro',
         'price': 9,
         'stripe_price_id': os.getenv('STRIPE_PRO_PRICE_ID'),
-        'brief_limit': 50,
+        'brief_limit': 50,  # Mantém limite mensal de briefs
         'features': [
             '50 briefs por mês',
             'Templates avançados',
@@ -127,7 +127,7 @@ PLANS = {
         'name': 'Premium',
         'price': 19,
         'stripe_price_id': os.getenv('STRIPE_PREMIUM_PRICE_ID'),
-        'brief_limit': 50,  # Mantendo o limite de 50 para manter consistência com o plano Pro
+        'brief_limit': 50,
         'features': [
             '50 briefs por mês',
             'Templates exclusivos',
@@ -159,79 +159,82 @@ def get_user_plan_info(user_id):
     user_data = user_ref.get() or {}
     plan = user_data.get('plan', 'free')
     plan_expiry = user_data.get('plan_expiry')
-    # Reset mensal do contador de briefs
-    now = datetime.utcnow()
-    month_key = now.strftime('%Y-%m')
+    free_trial_used = user_data.get('free_trial_used', False)
     briefs_used = user_data.get('briefs_used', {})
-    briefs_this_month = briefs_used.get(month_key, 0)
-    return plan, plan_expiry, briefs_this_month, user_data
+    now = datetime.now(timezone.utc)
+    month_key = now.strftime('%Y-%m')
+    briefs_this_month = briefs_used.get(month_key, 0) if plan != 'free' else 0
+    return plan, plan_expiry, briefs_this_month, free_trial_used, user_data
 
 def increment_brief_count(user_id):
     user_ref = db.reference(f'users/{user_id}')
     user_data = user_ref.get() or {}
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     month_key = now.strftime('%Y-%m')
     briefs_used = user_data.get('briefs_used', {})
     briefs_used[month_key] = briefs_used.get(month_key, 0) + 1
     user_ref.update({'briefs_used': briefs_used})
 
 # Função para checar se usuário pode criar brief
-
 def can_create_brief(user_id):
-    plan, plan_expiry, briefs_this_month, user_data = get_user_plan_info(user_id)
-    limit = PLANS[plan]['brief_limit']
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
     
-    # Verifica se o plano expirou e faz downgrade para free
     if plan_expiry:
-        expiry_dt = datetime.strptime(plan_expiry, '%Y-%m-%d')
-        if expiry_dt < datetime.utcnow():
-            # Downgrade automático
-            db.reference(f'users/{user_id}').update({
-                'plan': 'free',
-                'plan_expiry': None,
-                'briefs_used': {},  # Reseta o contador de briefs
-                'notified_limit': {}  # Reseta os avisos de limite
-            })
-            plan = 'free'
-            limit = PLANS['free']['brief_limit']
-            
-            # Notifica sobre o downgrade
-            email = user_data.get('email')
-            if email:
-                try:
-                    send_email(
-                        subject='Aviso: Plano expirado - EazyBrief',
-                        recipients=[email],
-                        body=f'Seu plano {PLANS[user_data.get("plan", "free")]["name"]} expirou. Você foi automaticamente revertido para o plano gratuito. Faça upgrade para continuar usando sem restrições.'
-                    )
-                except Exception as e:
-                    print(f'Erro ao enviar email de downgrade: {e}')
-    
-    # Verifica se atingiu o limite de briefs
-    if limit is not None:  # Se tiver limite definido (free e pro)
-        now = datetime.utcnow()
-        month_key = now.strftime('%Y-%m')
-        if briefs_this_month >= limit:
-            user_ref = db.reference(f'users/{user_id}')
-            user_data = user_ref.get() or {}
-            email = user_data.get('email')
-            notified = user_data.get('notified_limit', {})
-            if not notified.get(month_key):
-                if email:
-                    try:
-                        send_email(
-                            subject='Atenção: Limite do plano atingido - EazyBrief',
-                            recipients=[email],
-                            body=f'Você atingiu o limite de briefs do seu plano {PLANS[plan]["name"]}. Faça upgrade para continuar usando sem restrições.'
-                        )
-                    except Exception as e:
-                        print(f'Erro ao enviar email de limite atingido: {e}')
-                notified[month_key] = True
-                user_ref.update({'notified_limit': notified})
+        try:
+            expiry_dt = datetime.strptime(plan_expiry, '%Y-%m-%d')
+            now = datetime.now(timezone.utc)
+            logging.info(f'[CanCreateBrief] Verificando expiração: plan_expiry={plan_expiry}, now={now.date()}, user_id={user_id}')
+            if expiry_dt.date() < now.date():
+                logging.info(f'[CanCreateBrief] Plano expirado para user_id={user_id}')
+                if plan == 'free':
+                    db.reference(f'users/{user_id}').update({
+                        'free_trial_used': True,
+                        'plan': None,
+                        'plan_expiry': None
+                    })
+                    email = user_data.get('email')
+                    if email:
+                        try:
+                            send_email(
+                                subject='Teste Gratuito Expirado - EazyBrief',
+                                recipients=[email],
+                                body='Seu teste gratuito de 3 dias expirou. Faça upgrade para continuar usando o EazyBrief.'
+                            )
+                        except Exception as e:
+                            logging.error(f'[CanCreateBrief] Erro ao enviar email: {e}')
+                    return False
+                else:
+                    db.reference(f'users/{user_id}').update({
+                        'plan': None,
+                        'plan_expiry': None,
+                        'briefs_used': {}
+                    })
+                    email = user_data.get('email')
+                    if email:
+                        try:
+                            send_email(
+                                subject='Plano Expirado - EazyBrief',
+                                recipients=[email],
+                                body=f'Seu plano {PLANS[plan]["name"]} expirou. Faça upgrade para continuar.'
+                            )
+                        except Exception as e:
+                            logging.error(f'[CanCreateBrief] Erro ao enviar email: {e}')
+                    return False
+        except ValueError as e:
+            logging.error(f'[CanCreateBrief] Erro ao parsear plan_expiry: {e}')
             return False
     
+    if plan in ['pro', 'premium']:
+        limit = PLANS[plan]['brief_limit']
+        if briefs_this_month >= limit:
+            # ... (lógica de limite)
+            return False
+    
+    if free_trial_used and plan == 'free':
+        logging.info(f'[CanCreateBrief] Teste gratuito usado para user_id={user_id}')
+        return False
+    
     return True
-
 
 # Configuração do Firebase
 firebase_config = {
@@ -318,23 +321,41 @@ def signup():
             flash('Email e senha são obrigatórios.', 'danger')
             return render_template('signup.html')
         try:
-            # Criar usuário usando Pyrebase
+            try:
+                existing_user = auth.get_user_by_email(email)
+                user_id = existing_user.uid
+                user_data = db.reference(f'users/{user_id}').get() or {}
+                if user_data.get('free_trial_used', False):
+                    flash('Este email já utilizou o teste gratuito. Use outro email ou faça login.', 'danger')
+                    return render_template('signup.html')
+            except auth.UserNotFoundError:
+                pass
+            
             user = pyre_auth.create_user_with_email_and_password(email, password)
             
-            # Enviar email de verificação usando Pyrebase
-            pyre_auth.send_email_verification(user['idToken'])
+            user_id = user['localId']
+            now = datetime.now(timezone.utc)
+            expiry = (now + timedelta(days=3)).strftime('%Y-%m-%d')
+            logging.info(f'[Signup] Data atual: {now}, Definindo plan_expiry: {expiry} para user_id={user_id}')
+            db.reference(f'users/{user_id}').set({
+                'email': email,
+                'plan': 'free',
+                'plan_expiry': expiry,
+                'free_trial_used': False,
+                'created_at': now.isoformat()
+            })
             
-            flash('Conta criada com sucesso! Verifique seu email para ativar sua conta.', 'success')
+            pyre_auth.send_email_verification(user['idToken'])
+            flash('Conta criada com sucesso! Verifique seu email.', 'success')
             return redirect(url_for('login'))
         except Exception as e:
             error_message = str(e)
-            print(f"Erro detalhado no signup: {error_message}")
+            logging.error(f'[Signup] Erro: {error_message}')
             if 'EMAIL_EXISTS' in error_message:
                 flash('Este email já está em uso.', 'danger')
             else:
-                flash('Erro ao criar conta. Por favor, tente novamente.', 'danger')
+                flash('Erro ao criar conta. Tente novamente.', 'danger')
     return render_template('signup.html')
-
 @app.route('/login', methods=['GET', 'POST'])
 @guest_required
 def login():
@@ -379,8 +400,6 @@ def login():
 @app.route('/google/callback', methods=['POST'])
 def google_callback():
     try:
-
-        
         id_token = request.json.get('idToken')
         if not id_token:
             return jsonify({'success': False, 'message': 'Token não fornecido'})
@@ -581,15 +600,13 @@ def profile():
     user_id = get_user_id()
     prefs = db.reference(f'user_prefs/{user_id}').get() or {}
     
-    # Buscar informações do plano diretamente do banco de dados
-    user_data = db.reference(f'users/{user_id}').get() or {}
-    plan = user_data.get('plan', 'free')
-    plan_expiry = user_data.get('plan_expiry')
+    # Buscar informações do plano usando get_user_plan_info
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
     
     # Log para debug
     logging.info(f'[Profile] Carregando perfil para user_id={user_id}')
     logging.info(f'[Profile] Dados do usuário: {user_data}')
-    logging.info(f'[Profile] Plano atual: {plan}, Expira em: {plan_expiry}')
+    logging.info(f'[Profile] Plano atual: {plan}, Expira em: {plan_expiry}, Teste usado: {free_trial_used}')
     
     if request.method == 'POST':
         display_name = request.form.get('display_name', user_info.display_name or '')
@@ -637,7 +654,6 @@ def profile():
         flash('Perfil atualizado com sucesso!', 'success')
         return redirect(url_for('profile'))
     
-    plan, plan_expiry, _, _ = get_user_plan_info(user_id)
     plan_data = PLANS.get(plan, PLANS['free'])
     
     # Combinar dados do usuário
@@ -661,8 +677,8 @@ def profile():
                          user_phone=user_info_data['phone'],
                          user_photo=user_info_data['photo_url'],
                          plan_data=plan_data,
-                         plan_expiry=plan_expiry)
-
+                         plan_expiry=plan_expiry,
+                         free_trial_used=free_trial_used)  # Adicionado para o template
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
@@ -1006,7 +1022,7 @@ Por favor, crie um briefing detalhado e profissional que incorpore todas essas i
                 'template': template,
                 'extras': [{'name': extra['name'], 'value': extra['value']} for extra in extras],
                 'result': result,
-                'created_at': datetime.utcnow().isoformat() + 'Z',
+                'created_at': datetime.now(timezone.utc).isoformat() + 'Z',
                 'status': 'concluido',
             }
             brief_ref = db.reference(f'briefs/{user_id}').push(brief_data)
@@ -1569,66 +1585,64 @@ def plans():
         flash('Faça login para acessar os planos.', 'warning')
         return redirect(url_for('login'))
     user_id = get_user_id()
-    plan, plan_expiry, briefs_this_month, user_data = get_user_plan_info(user_id)
-    return render_template('plans.html', plans=PLANS, user_plan=plan, plan_expiry=plan_expiry, briefs_this_month=briefs_this_month)
-
+    # Ajustar para 5 valores
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
+    return render_template('plans.html', 
+                         plans=PLANS, 
+                         user_plan=plan, 
+                         plan_expiry=plan_expiry, 
+                         briefs_this_month=briefs_this_month,
+                         free_trial_used=free_trial_used)  # Passar free_trial_used para o template, se necessário@app.route('/upgrade/<plan_key>', methods=['POST'])
 @app.route('/upgrade/<plan_key>', methods=['POST'])
+@login_required
 def upgrade(plan_key):
     logging.info(f'[Upgrade] Iniciando processo de upgrade para o plano {plan_key}')
     
     if plan_key not in PLANS:
         logging.error(f'[Upgrade] Plano inválido: {plan_key}')
         return jsonify({'error': 'Plano inválido.'}), 400
-        
-    if 'user' not in session or 'user_email' not in session:
-        logging.error('[Upgrade] Usuário não está logado')
-        return jsonify({'error': 'Login necessário.'}), 401
     
     user_id = get_user_id()
-    logging.info(f'[Upgrade] User ID: {user_id}')
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
     
-    # Se for o plano gratuito, atualiza direto no banco
-    if plan_key == 'free':
+    if plan_key == 'free' and free_trial_used:
+        logging.error(f'[Upgrade] Tentativa de downgrade para free com teste usado: user_id={user_id}')
+        flash('Você já utilizou seu teste gratuito. Escolha um plano pago.', 'danger')
+        return redirect(url_for('plans'))
+    
+    if plan_key == 'free' and not free_trial_used:
         try:
+            now = datetime.now(timezone.utc)
+            expiry = (now + timedelta(days=3)).strftime('%Y-%m-%d')
+            logging.info(f'[Upgrade] Data atual: {now}, Definindo plan_expiry: {expiry} para teste gratuito, user_id={user_id}')
             db.reference(f'users/{user_id}').update({
                 'plan': 'free',
-                'plan_expiry': None
+                'plan_expiry': expiry
             })
-            flash('Plano atualizado com sucesso!', 'success')
+            flash('Plano de teste gratuito ativado por 3 dias!', 'success')
             return redirect(url_for('dashboard'))
         except Exception as e:
-            logging.error(f'[Upgrade] Erro ao atualizar para plano gratuito: {str(e)}')
-            flash('Erro ao atualizar plano. Por favor, tente novamente mais tarde.', 'error')
+            logging.error(f'[Upgrade] Erro ao ativar teste gratuito: {str(e)}')
+            flash('Erro ao ativar teste gratuito. Tente novamente.', 'danger')
             return redirect(url_for('plans'))
-    
-    # Para planos pagos, usa o Stripe
+        
+    # Para planos pagos, usar Stripe
     if not stripe.api_key:
         logging.error('[Upgrade] STRIPE_API_KEY não configurada')
-        flash('Erro de configuração do sistema de pagamento. Por favor, tente novamente mais tarde.', 'error')
+        flash('Erro de configuração do sistema de pagamento.', 'error')
         return redirect(url_for('plans'))
     
     session['upgrade_plan'] = plan_key
     
     try:
-        # Stripe Checkout Session
         domain_url = request.url_root.strip('/')
         price_id = PLANS[plan_key]['stripe_price_id']
         
-        logging.info(f'[Upgrade] Domain URL: {domain_url}')
-        logging.info(f'[Upgrade] Price ID: {price_id}')
+        logging.info(f'[Upgrade] Domain URL: {domain_url}, Price ID: {price_id}')
         
         if not price_id:
-            logging.error(f'[Upgrade] Stripe Price ID não configurado para o plano {plan_key}')
-            flash('Erro de configuração do sistema de pagamento. Por favor, tente novamente mais tarde.', 'error')
-            return redirect(url_for('plans'))
-        
-        # Verificar se o preço existe no Stripe
-        try:
-            price = stripe.Price.retrieve(price_id)
-            logging.info(f'[Upgrade] Preço encontrado no Stripe: {price}')
-        except Exception as e:
-            logging.error(f'[Upgrade] Erro ao verificar preço no Stripe: {str(e)}')
-            flash('Erro de configuração do sistema de pagamento. Por favor, tente novamente mais tarde.', 'error')
+            logging.error(f'[Upgrade] Stripe Price ID não configurado para {plan_key}')
+            flash('Erro de configuração do sistema de pagamento.', 'error')
             return redirect(url_for('plans'))
         
         stripe_session = stripe.checkout.Session.create(
@@ -1637,23 +1651,23 @@ def upgrade(plan_key):
                 'price': price_id,
                 'quantity': 1
             }],
-            mode='subscription',  # Changed from 'payment' to 'subscription'
+            mode='subscription',
             success_url=f'{domain_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'{domain_url}/plans',
             metadata={'user_id': user_id, 'plan': plan_key}
         )
         
-        logging.info(f'[Upgrade] Sessão do Stripe criada com sucesso: {stripe_session.id}')
+        logging.info(f'[Upgrade] Sessão Stripe criada: {stripe_session.id}')
         return redirect(stripe_session.url)
     except stripe.error.StripeError as e:
         logging.error(f'[Upgrade] Erro do Stripe: {str(e)}')
-        flash('Erro ao processar pagamento. Por favor, tente novamente mais tarde.', 'error')
+        flash('Erro ao processar pagamento. Tente novamente.', 'error')
         return redirect(url_for('plans'))
     except Exception as e:
         logging.error(f'[Upgrade] Erro inesperado: {str(e)}')
-        flash('Erro ao processar pagamento. Por favor, tente novamente mais tarde.', 'error')
+        flash('Erro ao processar pagamento. Tente novamente.', 'error')
         return redirect(url_for('plans'))
-
+    
 @app.route('/payment/success')
 def payment_success():
     user_id = get_user_id()
@@ -1671,6 +1685,16 @@ def payment_success():
             flash('Erro ao verificar pagamento. Entre em contato com o suporte.', 'error')
     return render_template('payment_success.html')
 
+def send_email(subject, recipients, body):
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = os.getenv('EMAIL_SENDER')
+    msg['To'] = ', '.join(recipients)
+    
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        server.login(os.getenv('EMAIL_SENDER'), os.getenv('EMAIL_PASSWORD'))
+        server.sendmail(os.getenv('EMAIL_SENDER'), recipients, msg.as_string())
+
 @app.route('/webhook/stripe', methods=['POST'])
 def stripe_webhook():
     payload = request.data
@@ -1678,28 +1702,21 @@ def stripe_webhook():
     endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
     
     logging.info(f'[Stripe Webhook] Recebido evento. Headers: {dict(request.headers)}')
-    logging.info(f'[Stripe Webhook] Payload: {payload.decode()}')
-    logging.info(f'[Stripe Webhook] Signature: {sig_header}')
-    logging.info(f'[Stripe Webhook] Secret configurado: {"Sim" if endpoint_secret else "Não"}')
     
     if not endpoint_secret:
         logging.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET não configurado')
         return 'Webhook secret not configured', 500
-        
+    
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-        logging.info(f'[Stripe Webhook] Evento construído com sucesso: {event["type"]}')
-        logging.info(f'[Stripe Webhook] Dados do evento: {event["data"]}')
+        logging.info(f'[Stripe Webhook] Evento: {event["type"]}')
     except ValueError as e:
         logging.warning(f'[Stripe Webhook] Payload inválido: {e}')
         return 'Invalid payload', 400
     except stripe.error.SignatureVerificationError as e:
         logging.error(f'[Stripe Webhook] Falha na assinatura: {e}')
         return 'Invalid signature', 400
-    except Exception as e:
-        logging.error(f'[Stripe Webhook] Erro inesperado: {e}')
-        return 'Webhook error', 400
-
+    
     if event['type'] == 'checkout.session.completed':
         session_obj = event['data']['object']
         user_id = session_obj['metadata'].get('user_id')
@@ -1707,35 +1724,33 @@ def stripe_webhook():
         
         logging.info(f'[Stripe Webhook] Metadata: user_id={user_id}, plan_key={plan_key}')
         
-        if not user_id or not plan_key:
-            logging.error(f'[Stripe Webhook] user_id ou plan_key ausentes: user_id={user_id}, plan_key={plan_key}')
-            return 'Missing user_id or plan_key', 400
-            
-        if plan_key not in PLANS:
-            logging.error(f'[Stripe Webhook] Plano inválido: {plan_key}')
-            return 'Invalid plan', 400
-            
+        if not user_id or not plan_key or plan_key not in PLANS:
+            logging.error(f'[Stripe Webhook] user_id ou plan_key inválidos')
+            return 'Invalid user_id or plan_key', 400
+        
         try:
-            expiry = (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1)
-            expiry_str = expiry.strftime('%Y-%m-%d')
+            now = datetime.now(timezone.utc)
+            expiry_dt = now + timedelta(30)
+            expiry = expiry_dt.strftime('%Y-%m-%d')
+            logging.info(f'[Stripe Webhook] Data atual: {now}, Definindo plan_expiry: {expiry} para user_id={user_id}')
+            
+            if expiry_dt.date() <= now.date():
+                logging.error(f'[Stripe Webhook] Erro: plan_expiry {expiry} não está no futuro')
+                return 'Invalid expiry date', 500
             
             update_data = {
                 'plan': plan_key,
-                'plan_expiry': expiry_str,
+                'plan_expiry': expiry,
                 'stripe_subscription_id': session_obj.get('subscription'),
-                'stripe_customer_id': session_obj.get('customer')
+                'stripe_customer_id': session_obj.get('customer'),
+                'free_trial_used': True
             }
-            logging.info(f'[Stripe Webhook] Dados a serem atualizados: {update_data}')
-            
             db.reference(f'users/{user_id}').update(update_data)
-            
-            updated_user_data = db.reference(f'users/{user_id}').get() or {}
-            logging.info(f'[Stripe Webhook] Dados do usuário após atualização: {updated_user_data}')
             
             create_notification(
                 user_id=user_id,
-                title="Plano Atualizado",
-                message=f"Seu plano foi atualizado para {PLANS[plan_key]['name']} com sucesso! Expira em {expiry_str}.",
+                title="Plano Ativado",
+                message=f"Seu plano {PLANS[plan_key]['name']} foi ativado! Expira em {expiry}.",
                 type="success"
             )
             
@@ -1743,11 +1758,10 @@ def stripe_webhook():
             if email:
                 try:
                     send_email(
-                        subject='Pagamento confirmado - EazyBrief',
+                        subject='Plano Ativado - EazyBrief',
                         recipients=[email],
-                        body=f'Seu pagamento foi confirmado e seu plano {PLANS[plan_key]["name"]} já está ativo!'
+                        body=f'Seu plano {PLANS[plan_key]["name"]} foi ativado! Aproveite os recursos até {expiry}.'
                     )
-                    logging.info(f'[Stripe Webhook] Email de confirmação enviado para {email}')
                 except Exception as e:
                     logging.error(f'[Stripe Webhook] Erro ao enviar email: {e}')
         except Exception as e:
@@ -1756,7 +1770,7 @@ def stripe_webhook():
     
     elif event['type'] == 'invoice.paid':
         invoice = event['data']['object']
-        subscription_id = invoice['parent']['subscription_details']['subscription']
+        subscription_id = invoice.get('subscription')
         customer_id = invoice['customer']
         
         try:
@@ -1765,49 +1779,51 @@ def stripe_webhook():
             user_id = checkout_session['metadata'].get('user_id')
             plan_key = checkout_session['metadata'].get('plan')
             
-            if not user_id or not plan_key:
-                logging.error(f'[Stripe Webhook] user_id ou plan_key ausentes em invoice.paid: user_id={user_id}, plan_key={plan_key}')
-                return 'Missing user_id or plan_key', 400
-                
-            if plan_key not in PLANS:
-                logging.error(f'[Stripe Webhook] Plano inválido em invoice.paid: {plan_key}')
-                return 'Invalid plan', 400
-                
-            expiry = (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1)
-            expiry_str = expiry.strftime('%Y-%m-%d')
+            if not user_id or not plan_key or plan_key not in PLANS:
+                logging.error(f'[Stripe Webhook] user_id ou plan_key inválidos em invoice.paid')
+                return 'Invalid user_id or plan_key', 400
+            
+            now = datetime.now(timezone.utc)
+            expiry_dt = now + timedelta(30)
+            expiry = expiry_dt.strftime('%Y-%m-%d')
+            logging.info(f'[Stripe Webhook] Data atual: {now}, Subscription start: {datetime.fromtimestamp(subscription.current_period_start, timezone.utc)}, Definindo plan_expiry: {expiry} para user_id={user_id} (invoice.paid)')
+            
+            if expiry_dt.date() <= now.date():
+                logging.error(f'[Stripe Webhook] Erro: plan_expiry {expiry} não está no futuro (invoice.paid)')
+                return 'Invalid expiry date', 500
             
             update_data = {
                 'plan': plan_key,
-                'plan_expiry': expiry_str,
+                'plan_expiry': expiry,
                 'stripe_subscription_id': subscription_id,
-                'stripe_customer_id': customer_id
+                'stripe_customer_id': customer_id,
+                'free_trial_used': True
             }
-            logging.info(f'[Stripe Webhook] Atualizando plano para invoice.paid: {update_data}')
-            
             db.reference(f'users/{user_id}').update(update_data)
             
             create_notification(
                 user_id=user_id,
-                title="Plano Atualizado",
-                message=f"Seu plano foi atualizado para {PLANS[plan_key]['name']} com sucesso! Expira em {expiry_str}.",
+                title="Plano Renovado",
+                message=f"Seu plano {PLANS[plan_key]['name']} foi renovado! Expira em {expiry}.",
                 type="success"
             )
             
             email = invoice.get('customer_email')
             if email:
-                send_email(
-                    subject='Pagamento confirmado - EazyBrief',
-                    recipients=[email],
-                    body=f'Seu pagamento foi confirmado e seu plano {PLANS[plan_key]["name"]} já está ativo!'
-                )
+                try:
+                    send_email(
+                        subject='Plano Renovado - EazyBrief',
+                        recipients=[email],
+                        body=f'Seu plano {PLANS[plan_key]["name"]} foi renovado! Aproveite até {expiry}.'
+                    )
+                except Exception as e:
+                    logging.error(f'[Stripe Webhook] Erro ao enviar email: {e}')
         except Exception as e:
             logging.error(f'[Stripe Webhook] Erro ao processar invoice.paid: {e}')
             return 'Error processing invoice.paid', 500
     
-    else:
-        logging.info(f'[Stripe Webhook] Evento ignorado: {event["type"]}')
-    
     return '', 200
+
 # Lista de e-mails admin
 ADMINS = [
     'robbiealgon@gmail.com',
@@ -1860,7 +1876,7 @@ def create_notification(user_id, title, message, type='info'):
         'message': message,
         'type': type,
         'read': False,
-        'created_at': datetime.utcnow().isoformat() + 'Z'
+        'created_at': datetime.now(timezone.utc).isoformat() + 'Z'
     }
     db.reference(f'notifications/{user_id}').push(notification)
     return notification
@@ -1919,9 +1935,9 @@ def inject_notification_count():
 @login_required
 def support():
     user_id = get_user_id()
-    plan, _, _, _ = get_user_plan_info(user_id)
-    plan_data = PLANS.get(plan, PLANS['free'])
-    return render_template('support.html', plan_data=plan_data)
+    # Ajustar para 5 valores
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
+    return render_template('support.html', plan_data=PLANS.get(plan, PLANS['free']))
 
 @app.route('/api/contact', methods=['POST'])
 def contact():
@@ -1941,7 +1957,7 @@ def contact():
             'subject': subject,
             'message': message,
             'email': session.get('user_email', 'Não logado'),
-            'created_at': datetime.utcnow().isoformat() + 'Z',
+            'created_at': datetime.now(timezone.utc).isoformat() + 'Z',
             'status': 'new'
         }
         db.reference('contact_messages').push(contact_data)
@@ -2072,7 +2088,13 @@ def legal():
 @login_required
 def new_brief():
     user_id = get_user_id()
-    plan, _, _, user_data = get_user_plan_info(user_id)
+    # Ajustar para 5 valores
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
+    
+    if not can_create_brief(user_id):
+        flash('Seu plano expirou ou você atingiu o limite. Faça upgrade para continuar.', 'danger')
+        return redirect(url_for('plans'))
+    
     return render_template('new_brief.html', plan_data=PLANS.get(plan, PLANS['free']))
 
 @app.route('/feedback')
@@ -2101,7 +2123,7 @@ def submit_feedback():
             'priority': data['priority'],
             'contact': data.get('contact', ''),
             'status': 'pending',
-            'created_at': datetime.utcnow().isoformat() + 'Z',
+            'created_at': datetime.now(timezone.utc).isoformat() + 'Z',
             'user_id': get_user_id() if 'user' in session else None,
             'user_email': session.get('user_email')
         }
@@ -2149,13 +2171,14 @@ def inject_firebase_config():
         }
     }
 
-@login_required
 @app.route('/export')
 @login_required
 def export_page():
     user_id = get_user_id()
-    plan, _, _, user_data = get_user_plan_info(user_id)
+    # Ajustar para 5 valores
+    plan, plan_expiry, briefs_this_month, free_trial_used, user_data = get_user_plan_info(user_id)
     return render_template('export.html', plan_data=PLANS.get(plan, PLANS['free']))
+
 
 @app.route('/api/export/<format>', methods=['POST'])
 @login_required

@@ -1,63 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Feedback - {{ plan_data.get('name', 'Gratuito') }} - EazyBrief{% endblock %}
+{% block title %}Feedback - {{ plan_data.get('name', 'Free') }} - EazyBrief{% endblock %}
 
-{% block page_title %}{{ plan_data.get('name', 'Gratuito') }}{% endblock %}
+{% block page_title %}{{ plan_data.get('name', 'Free') }}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto">
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-bold mb-6">Envie seu Feedback</h2>
+            <h2 class="text-2xl font-bold mb-6">Send Your Feedback</h2>
             
             <form id="feedbackForm" class="space-y-6">
                 <div>
-                    <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Tipo de Feedback</label>
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Feedback Type</label>
                     <select id="type" name="type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Selecione o tipo</option>
-                        <option value="suggestion">Sugestão</option>
-                        <option value="bug">Reportar Bug</option>
-                        <option value="praise">Elogio</option>
-                        <option value="other">Outro</option>
+                        <option value="">Select type</option>
+                        <option value="suggestion">Suggestion</option>
+                        <option value="bug">Report a Bug</option>
+                        <option value="praise">Praise</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title</label>
                     <input type="text" id="title" name="title" required 
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                           placeholder="Resumo do seu feedback">
+                           placeholder="Summary of your feedback">
                 </div>
 
                 <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
                     <textarea id="description" name="description" required rows="4"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                              placeholder="Descreva seu feedback em detalhes..."></textarea>
+                              placeholder="Describe your feedback in detail..."></textarea>
                 </div>
 
                 <div>
-                    <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Prioridade</label>
+                    <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
                     <select id="priority" name="priority" required 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="low">Baixa</option>
-                        <option value="medium">Média</option>
-                        <option value="high">Alta</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="contact" class="block text-sm font-medium text-gray-700 mb-2">Email para contato (opcional)</label>
+                    <label for="contact" class="block text-sm font-medium text-gray-700 mb-2">Contact Email (optional)</label>
                     <input type="email" id="contact" name="contact"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                           placeholder="Seu email para contato">
+                           placeholder="Your email for contact">
                 </div>
 
                 <div id="messageBox" class="hidden p-4 rounded-md mb-4"></div>
 
                 <button type="submit" 
                         class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                    Enviar Feedback
+                    Send Feedback
                 </button>
             </form>
         </div>
@@ -92,15 +92,15 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
 
         if (data.success) {
             messageBox.className = 'bg-green-100 text-green-700 p-4 rounded-md mb-4';
-            messageBox.textContent = 'Feedback enviado com sucesso! Obrigado por nos ajudar a melhorar.';
+            messageBox.textContent = 'Feedback submitted successfully! Thank you for helping us improve.';
             this.reset();
         } else {
             messageBox.className = 'bg-red-100 text-red-700 p-4 rounded-md mb-4';
-            messageBox.textContent = data.error || 'Erro ao enviar feedback. Por favor, tente novamente.';
+            messageBox.textContent = data.error || 'Error sending feedback. Please try again.';
         }
     } catch (error) {
         messageBox.className = 'bg-red-100 text-red-700 p-4 rounded-md mb-4';
-        messageBox.textContent = 'Erro ao enviar feedback. Por favor, tente novamente.';
+        messageBox.textContent = 'Error sending feedback. Please try again.';
     }
 });
 </script>

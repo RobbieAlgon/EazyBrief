@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Editar Brief - EazyBrief{% endblock %}
+{% block title %}Edit Brief - EazyBrief{% endblock %}
 
 {% block page_title %}{% endblock %}
 
@@ -10,40 +10,40 @@
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Brief</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Brief Type</label>
                     <select name="brief_type" required class="form-select w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Selecione um tipo</option>
-                        <option value="Design Gráfico" {% if brief.brief_type == 'Design Gráfico' %}selected{% endif %}>Design Gráfico</option>
-                        <option value="Marketing Digital" {% if brief.brief_type == 'Marketing Digital' %}selected{% endif %}>Marketing Digital</option>
-                        <option value="Desenvolvimento Web" {% if brief.brief_type == 'Desenvolvimento Web' %}selected{% endif %}>Desenvolvimento Web</option>
-                        <option value="Mídias Sociais" {% if brief.brief_type == 'Mídias Sociais' %}selected{% endif %}>Mídias Sociais</option>
-                        <option value="Produção de Vídeo" {% if brief.brief_type == 'Produção de Vídeo' %}selected{% endif %}>Produção de Vídeo</option>
-                        <option value="Personalizado" {% if brief.brief_type == 'Personalizado' %}selected{% endif %}>Personalizado</option>
+                        <option value="">Select a type</option>
+                        <option value="Graphic Design" {% if brief.brief_type == 'Graphic Design' or brief.brief_type == 'Design Gráfico' %}selected{% endif %}>Graphic Design</option>
+                        <option value="Digital Marketing" {% if brief.brief_type == 'Digital Marketing' or brief.brief_type == 'Marketing Digital' %}selected{% endif %}>Digital Marketing</option>
+                        <option value="Web Development" {% if brief.brief_type == 'Web Development' or brief.brief_type == 'Desenvolvimento Web' %}selected{% endif %}>Web Development</option>
+                        <option value="Social Media" {% if brief.brief_type == 'Social Media' or brief.brief_type == 'Mídias Sociais' %}selected{% endif %}>Social Media</option>
+                        <option value="Video Production" {% if brief.brief_type == 'Video Production' or brief.brief_type == 'Produção de Vídeo' %}selected{% endif %}>Video Production</option>
+                        <option value="Custom" {% if brief.brief_type == 'Custom' or brief.brief_type == 'Personalizado' %}selected{% endif %}>Custom</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Template</label>
                     <select name="template" required class="form-select w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Selecione um template</option>
-                        <option value="Clássico" {% if brief.template == 'Clássico' %}selected{% endif %}>Clássico</option>
+                        <option value="">Select a template</option>
+                        <option value="Classic" {% if brief.template == 'Classic' or brief.template == 'Clássico' %}selected{% endif %}>Classic</option>
                         <option value="Visual" {% if brief.template == 'Visual' %}selected{% endif %}>Visual</option>
-                        <option value="Minimalista" {% if brief.template == 'Minimalista' %}selected{% endif %}>Minimalista</option>
+                        <option value="Minimalist" {% if brief.template == 'Minimalist' or brief.template == 'Minimalista' %}selected{% endif %}>Minimalist</option>
                     </select>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Descrição do Projeto</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Project Description</label>
                 <textarea name="text" rows="6" required class="form-textarea w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ brief.text }}</textarea>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Resultado do Brief</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Brief Result</label>
                 <textarea name="result" rows="8" required class="form-textarea w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ brief.result }}</textarea>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Campos Extras</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Extra Fields</label>
                 <div id="extra-fields" class="space-y-4">
                     {% if brief.extras %}
                         {% for extra in brief.extras %}
@@ -56,19 +56,19 @@
                         </div>
                         {% endfor %}
                     {% endif %}
-                    <button type="button" onclick="addExtraField()" class="mt-2 text-indigo-600 hover:text-indigo-800">
-                        <i class="fas fa-plus mr-1"></i>Adicionar Campo Extra
+                    <button type="button" onclick="addExtraField()" class="btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-sm">
+                        <i class="fas fa-plus mr-1"></i> Add Field
                     </button>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Imagem de Referência (opcional)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reference Image (optional)</label>
                 {% if brief.image_url %}
                 <div class="mb-4">
-                    <img src="{{ brief.image_url }}" alt="Imagem atual" class="max-w-xs rounded shadow">
+                    <img src="{{ brief.image_url }}" alt="Current image" class="max-w-xs rounded shadow">
                     <button type="button" onclick="removeImage()" class="text-red-500 hover:text-red-700 mt-2">
-                        <i class="fas fa-times mr-1"></i>Remover Imagem
+                        <i class="fas fa-times mr-1"></i> Remove Image
                     </button>
                 </div>
                 {% endif %}
@@ -78,18 +78,18 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select name="status" class="form-select w-full rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="concluido" {% if brief.status == 'concluido' %}selected{% endif %}>Concluído</option>
-                    <option value="em_andamento" {% if brief.status == 'em_andamento' %}selected{% endif %}>Em Andamento</option>
-                    <option value="pendente" {% if brief.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="completed" {% if brief.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="in_progress" {% if brief.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="pending" {% if brief.status == 'pending' %}selected{% endif %}>Pending</option>
                 </select>
             </div>
 
             <div class="flex justify-end space-x-4">
-                <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    Cancelar
+                <a href="{{ url_for('view_brief', brief_id=brief.id) }}" class="btn bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded-lg">
+                    <i class="fas fa-times mr-2"></i> Cancel
                 </a>
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                    Salvar Alterações
+                    Save Changes
                 </button>
             </div>
         </form>
@@ -101,8 +101,8 @@ function addExtraField() {
     const container = document.createElement('div');
     container.className = 'flex space-x-4 extra-field';
     container.innerHTML = `
-        <input type="text" name="extra_name[]" placeholder="Nome do campo" class="form-input flex-1 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <input type="text" name="extra_value[]" placeholder="Valor" class="form-input flex-1 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="text" name="extra_name[]" placeholder="Enter text here..." class="form-input flex-1 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="text" name="extra_value[]" placeholder="Value" class="form-input flex-1 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         <button type="button" onclick="removeExtra(this)" class="text-red-500 hover:text-red-700">
             <i class="fas fa-times"></i>
         </button>

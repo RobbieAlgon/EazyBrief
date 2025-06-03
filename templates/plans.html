@@ -5,10 +5,10 @@
     <div class="max-w-7xl mx-auto">
         <div class="text-center">
             <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-                Escolha seu plano
+                Choose Your Plan
             </h2>
             <p class="mt-4 text-lg text-gray-600">
-                Selecione o plano que melhor atende às suas necessidades
+                Select the plan that best fits your needs
             </p>
         </div>
 
@@ -19,33 +19,33 @@
                     <h2 class="text-2xl font-semibold text-gray-900">{{ plan.name }}</h2>
                     <p class="mt-4 text-sm text-gray-500">
                         {% if plan.brief_limit %}
-                            Até {{ plan.brief_limit }} briefs por mês
+                            Up to {{ plan.brief_limit }} briefs per month
                         {% else %}
-                            Briefs ilimitados
+                            Unlimited briefs
                         {% endif %}
                     </p>
                     <p class="mt-8">
                         <span class="text-4xl font-extrabold text-gray-900">${{ plan.price }}</span>
-                        <span class="text-base font-medium text-gray-500">/mês</span>
+                        <span class="text-base font-medium text-gray-500">/month</span>
                     </p>
                     {% if plan_key == user_plan %}
                         <button class="mt-8 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 text-sm font-semibold text-gray-900 text-center">
-                            Plano atual
+                            Current Plan
                         </button>
                     {% else %}
                         <form action="{{ url_for('upgrade', plan_key=plan_key) }}" method="POST" class="mt-8">
                             <button type="submit" class="block w-full bg-indigo-600 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-indigo-700">
                                 {% if plan.price > 0 %}
-                                    Fazer upgrade
+                                    Upgrade Now
                                 {% else %}
-                                    Selecionar plano
+                                    Select Plan
                                 {% endif %}
                             </button>
                         </form>
                     {% endif %}
                 </div>
                 <div class="pt-6 pb-8 px-6">
-                    <h3 class="text-xs font-medium text-gray-900 tracking-wide uppercase">Recursos incluídos</h3>
+                    <h3 class="text-xs font-medium text-gray-900 tracking-wide uppercase">Included Features</h3>
                     <ul class="mt-6 space-y-4">
                         {% for feature in plan.features %}
                         <li class="flex space-x-3">
@@ -61,13 +61,13 @@
 
         {% if user_plan != 'free' and plan_expiry %}
             <div class="mt-8 text-center text-sm text-gray-500">
-                Seu plano atual expira em {{ plan_expiry }}
+                Your current plan expires on {{ plan_expiry }}
             </div>
         {% endif %}
 
         {% if user_plan == 'free' and briefs_this_month > 0 %}
             <div class="mt-8 text-center text-sm text-gray-500">
-                Você já usou {{ briefs_this_month }} de {{ plans[user_plan].brief_limit }} briefs este mês
+                You've used {{ briefs_this_month }} out of {{ plans[user_plan].brief_limit }} briefs this month
             </div>
         {% endif %}
     </div>

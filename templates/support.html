@@ -1,53 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}Suporte - {{ plan_data.get('name', 'Gratuito') }} - EazyBrief{% endblock %}
+{% block title %}Support - {{ plan_data.get('name', 'Free') }} - EazyBrief{% endblock %}
 
-{% block page_title %}{{ plan_data.get('name', 'Gratuito') }}{% endblock %}
+{% block page_title %}{{ plan_data.get('name', 'Free') }}{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- FAQ Section -->
         <div class="bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Perguntas Frequentes</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Frequently Asked Questions</h2>
             <div class="space-y-4">
                 <div class="border-b border-gray-200 pb-4">
                     <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
-                        <span class="text-lg font-medium text-gray-900">Como funciona o EazyBrief?</span>
+                        <span class="text-lg font-medium text-gray-900">How does EazyBrief work?</span>
                         <i class="fas fa-chevron-down text-gray-500"></i>
                     </button>
                     <div class="mt-2 text-gray-600 hidden">
-                        O EazyBrief é uma plataforma que ajuda você a criar briefings profissionais de forma rápida e eficiente. Basta inserir suas informações e nossa IA irá gerar um briefing completo e estruturado.
+                        EazyBrief is a platform that helps you create professional briefings quickly and efficiently. Just enter your information and our AI will generate a complete and structured briefing.
                     </div>
                 </div>
 
                 <div class="border-b border-gray-200 pb-4">
                     <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
-                        <span class="text-lg font-medium text-gray-900">Quais são os planos disponíveis?</span>
+                        <span class="text-lg font-medium text-gray-900">What plans are available?</span>
                         <i class="fas fa-chevron-down text-gray-500"></i>
                     </button>
                     <div class="mt-2 text-gray-600 hidden">
-                        Oferecemos três planos: Grátis (3 briefs/mês), Pro (50 briefs/mês) e Premium (briefs ilimitados). Cada plano tem recursos específicos para atender diferentes necessidades.
+                        We offer three plans: Free (3 briefs/month), Pro (50 briefs/month), and Premium (unlimited briefs). Each plan has specific features to meet different needs.
                     </div>
                 </div>
 
                 <div class="border-b border-gray-200 pb-4">
                     <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
-                        <span class="text-lg font-medium text-gray-900">Como posso exportar meus briefs?</span>
+                        <span class="text-lg font-medium text-gray-900">How can I export my briefs?</span>
                         <i class="fas fa-chevron-down text-gray-500"></i>
                     </button>
                     <div class="mt-2 text-gray-600 hidden">
-                        Você pode exportar seus briefs em vários formatos: PDF, DOCX, TXT e HTML. Basta acessar o brief desejado e clicar no botão de exportação.
+                        You can export your briefs in various formats: PDF, DOCX, TXT, and HTML. Just access the desired brief and click the export button.
                     </div>
                 </div>
 
                 <div class="border-b border-gray-200 pb-4">
                     <button onclick="toggleFAQ(this)" class="flex justify-between items-center w-full text-left">
-                        <span class="text-lg font-medium text-gray-900">Como funciona o sistema de pagamento?</span>
+                        <span class="text-lg font-medium text-gray-900">How does the payment system work?</span>
                         <i class="fas fa-chevron-down text-gray-500"></i>
                     </button>
                     <div class="mt-2 text-gray-600 hidden">
-                        Utilizamos o Stripe como processador de pagamentos. Aceitamos cartões de crédito e débito. O pagamento é processado de forma segura e você receberá um recibo por email.
+                        We use Stripe as our payment processor. We accept credit and debit cards. The payment is processed securely and you will receive a receipt by email.
                     </div>
                 </div>
             </div>
@@ -55,25 +55,25 @@
 
         <!-- Contact Form -->
         <div class="bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Entre em Contato</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Contact Us</h2>
             <form id="contact-form" class="space-y-4">
                 <div>
-                    <label for="subject" class="block text-sm font-medium text-gray-700">Assunto</label>
+                    <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
                     <select id="subject" name="subject" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="general">Geral</option>
-                        <option value="technical">Suporte Técnico</option>
-                        <option value="billing">Faturamento</option>
+                        <option value="general">General</option>
+                        <option value="technical">Technical Support</option>
+                        <option value="billing">Billing</option>
                         <option value="feedback">Feedback</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="message" class="block text-sm font-medium text-gray-700">Mensagem</label>
+                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
                     <textarea id="message" name="message" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                 </div>
 
                 <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Enviar Mensagem
+                    Send Message
                 </button>
             </form>
         </div>
@@ -108,10 +108,10 @@ document.getElementById('contact-form').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+            alert('Message sent successfully! We will contact you soon.');
             document.getElementById('contact-form').reset();
         } else {
-            alert('Erro ao enviar mensagem. Por favor, tente novamente.');
+            alert('Error sending message. Please try again.');
         }
     })
     .catch(error => {

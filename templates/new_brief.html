@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Novo Brief - EazyBrief{% endblock %}
+{% block title %}New Brief - EazyBrief{% endblock %}
 {% block page_title %}{% endblock %}
 
 {% block extra_css %}
@@ -202,106 +202,111 @@
     <form id="brief-form" class="space-y-4">
     <input type="hidden" id="brief_id" name="brief_id">
         <div class="input-section">
-            <h3><i class="fas fa-file-alt"></i>Texto</h3>
+            <h3><i class="fas fa-file-alt"></i>Text</h3>
             <textarea id="brief-text" 
                       class="form-control w-full h-28 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Digite ou cole o texto do briefing aqui..."></textarea>
+                      placeholder="Enter the brief text here..."></textarea>
         </div>
         <div class="input-section">
-            <h3><i class="fas fa-microphone"></i>Áudio</h3>
+            <h3><i class="fas fa-microphone"></i>Audio</h3>
             <div class="flex flex-wrap gap-2">
                 <button type="button" id="recordButton" 
                         class="btn bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center">
                     <i class="fas fa-microphone mr-1.5"></i>
-                    <span id="recordButtonText">Gravar Áudio</span>
+                    <span id="recordButtonText">Record Audio</span>
                 </button>
                 <input type="file" id="audioFile" accept="audio/*" class="hidden" onchange="window.handleAudioUpload(this)">
                 <button type="button" onclick="document.getElementById('audioFile').click()"
                         class="btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 flex items-center">
                     <i class="fas fa-upload mr-1.5"></i>
-                    Enviar Arquivo
+                    Upload Audio
                 </button>
             </div>
             <div id="audioStatus" class="text-sm text-gray-600 mt-1.5"></div>
             <div id="audioPreview" class="preview-container hidden">
                 <audio controls class="w-full"></audio>
                 <button type="button" onclick="window.removeAudio()" class="text-red-600 hover:text-red-700 mt-1.5 text-sm">
-                    <i class="fas fa-times mr-1"></i>Remover Áudio
+                    <i class="fas fa-times mr-1"></i>
+                    Remove Audio
                 </button>
             </div>
         </div>
         <div class="input-section">
-            <h3><i class="fas fa-image"></i>Imagem</h3>
+            <h3><i class="fas fa-image"></i>Image</h3>
             <div class="flex flex-wrap gap-2">
                 <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="window.handleImageUpload(this)">
                 <button type="button" onclick="document.getElementById('imageFile').click()"
                         class="btn bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center">
                     <i class="fas fa-upload mr-1.5"></i>
-                    Escolher Imagem
+                    Upload Image
                 </button>
             </div>
             <div class="mt-2 hidden" id="imagePreview">
-                <img id="imagePreviewImg" src="" alt="Preview da Imagem" class="object-cover">
+                <img id="imagePreviewImg" src="" alt="Image Preview" class="object-cover">
                 <button type="button" onclick="window.removeImage()" class="text-red-600 hover:text-red-700 mt-1.5 text-sm">
-                    <i class="fas fa-times mr-1"></i>Remover Imagem
+                    <i class="fas fa-times mr-1"></i>
+                    Remove Image
                 </button>
             </div>
         </div>
         <div class="input-section">
-            <h3><i class="fas fa-cog"></i>Configurações</h3>
+            <h3><i class="fas fa-cog"></i>Settings</h3>
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
                 <div>
                     <label for="template" class="block text-sm font-medium text-gray-700 mb-1">Template</label>
                     <select id="template" class="form-control w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Selecione um template</option>
-                        <option value="Clássico">Clássico</option>
+                        <option value="">Select a template</option>
+                        <option value="Classic">Classic</option>
                         <option value="Visual">Visual</option>
-                        <option value="Minimalista">Minimalista</option>
+                        <option value="Minimalist">Minimalist</option>
                     </select>
                 </div>
                 <div>
-                    <label for="brief-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Briefing</label>
+                    <label for="brief-type" class="block text-sm font-medium text-gray-700 mb-1">Brief Type</label>
                     <select id="brief-type" class="form-control w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Selecione um tipo</option>
-                        <option value="Design Gráfico">Design Gráfico</option>
-                        <option value="Marketing Digital">Marketing Digital</option>
-                        <option value="Desenvolvimento Web">Desenvolvimento Web</option>
-                        <option value="Mídias Sociais">Mídias Sociais</option>
-                        <option value="Produção de Vídeo">Produção de Vídeo</option>
-                        <option value="Personalizado">Personalizado</option>
+                        <option value="">Select a type</option>
+                        <option value="Graphic Design">Graphic Design</option>
+                        <option value="Digital Marketing">Digital Marketing</option>
+                        <option value="Web Development">Web Development</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Video Production">Video Production</option>
+                        <option value="Custom">Custom</option>
                     </select>
                 </div>
             </div>
         </div>
         <div class="input-section">
-            <h3><i class="fas fa-plus-circle"></i>Campos Extras</h3>
+            <h3><i class="fas fa-plus-circle"></i>Extra Fields</h3>
             <div id="extra-fields" class="space-y-2"></div>
             <button type="button" onclick="window.addExtraField()" 
                     class="mt-2 btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 flex items-center">
                 <i class="fas fa-plus mr-1.5"></i>
-                Adicionar Campo Extra
+                Add Field
             </button>
         </div>
         <div class="flex justify-end flex-wrap gap-2 mt-4">
             <button type="submit" class="btn bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center">
                 <i class="fas fa-magic mr-1.5"></i>
-                Gerar Brief
+                Generate Brief
             </button>
         </div>
     </form>
     <div id="result-section" class="hidden mt-6">
         <div class="bg-white rounded-lg shadow-lg p-4">
             <div class="flex flex-wrap justify-between items-center mb-3">
-                <h3 class="text-lg font-semibold">Briefing Gerado</h3>
+                <h3 class="text-lg font-semibold">Generated Briefing</h3>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="window.editBrief()" class="text-gray-600 hover:text-gray-800 text-sm">
-                        <i class="fas fa-edit mr-1"></i>Editar
+                        <i class="fas fa-edit mr-1"></i>
+                        Edit
                     </button>
                     <button onclick="window.saveBrief()" class="text-green-600 hover:text-green-800 text-sm">
-                        <i class="fas fa-save mr-1"></i>Salvar
+                        <i class="fas fa-save mr-1"></i>
+                        Save
                     </button>
                     <button onclick="window.cancelBrief()" class="text-red-600 hover:text-red-800 text-sm">
-                        <i class="fas fa-times mr-1"></i>Cancelar
+                        <i class="fas fa-times mr-1"></i>
+                        Cancel
                     </button>
                 </div>
             </div>
@@ -396,8 +401,8 @@ try {
             mediaRecorder.stop();
             recordButton.classList.remove('bg-red-600');
             recordButton.classList.add('bg-indigo-600');
-            recordButtonText.textContent = 'Gravar Áudio';
-            audioStatus.textContent = 'Processando áudio...';
+            recordButtonText.textContent = 'Record Audio';
+            audioStatus.textContent = 'Processing audio...';
         } else {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -414,17 +419,17 @@ try {
                         audioElement.src = audioUrl;
                         audioPreview.classList.remove('hidden');
                     }
-                    audioStatus.textContent = 'Áudio gravado com sucesso!';
+                    audioStatus.textContent = 'Audio recorded successfully!';
                 };
                 mediaRecorder.start();
                 recordButton.classList.remove('bg-indigo-600');
                 recordButton.classList.add('bg-red-600');
-                recordButtonText.textContent = 'Parar Gravação';
-                audioStatus.textContent = 'Gravando...';
+                recordButtonText.textContent = 'Stop Recording';
+                audioStatus.textContent = 'Recording...';
                 console.log('new_brief.js: Recording started');
             } catch (error) {
                 console.error('new_brief.js: Error accessing microphone:', error);
-                audioStatus.textContent = 'Erro ao acessar o microfone';
+                audioStatus.textContent = 'Error accessing microphone';
             }
         }
     };
@@ -437,9 +442,9 @@ try {
         container.className = 'extra-field fade-in';
         container.id = `extra-field-${extraFieldId}`;
         container.innerHTML = `
-            <input type="text" placeholder="Nome do campo" 
+            <input type="text" placeholder="Field Name" 
                    class="form-control p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-            <input type="text" placeholder="Valor" 
+            <input type="text" placeholder="Field Value" 
                    class="form-control p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
             <button type="button" class="text-red-600 hover:text-red-700 p-2">
                 <i class="fas fa-times"></i>

@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Visualizar Brief - EazyBrief{% endblock %}
+{% block title %}View Brief - EazyBrief{% endblock %}
 
 {% block page_title %}{% endblock %}
 
 {% block extra_css %}
 {{ super() }}
 <style>
-/* Estilos para o cartão */
+/* Card styles */
 .brief-card {
     background: #ffffff;
     border-radius: 1rem;
@@ -15,7 +15,7 @@
     overflow: hidden;
 }
 
-/* Estilos para o header */
+/* Header styles */
 .brief-card .brief-header {
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
     padding: 1.5rem;
@@ -27,7 +27,7 @@
     gap: 0.75rem;
 }
 
-/* Estilos para o título */
+/* Title styles */
 .brief-card .brief-title {
     display: flex;
     flex-direction: column;
@@ -48,7 +48,7 @@
     color: #ffffff;
 }
 
-/* Estilos para a seção de ações */
+/* Action section styles */
 .brief-card .brief-actions {
     display: flex;
     flex-wrap: wrap;
@@ -58,12 +58,12 @@
     flex-grow: 1;
 }
 
-/* Estilos para o grupo de ações */
+/* Action group styles */
 .brief-card .action-group {
     position: relative;
 }
 
-/* Estilos para os botões */
+/* Button styles */
 .brief-card .action-btn {
     background: rgba(255, 255, 255, 0.15);
     border: none;
@@ -88,7 +88,7 @@
     font-size: 1.1rem;
 }
 
-/* Estilos para o dropdown */
+/* Dropdown styles */
 .brief-card .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -133,7 +133,7 @@
 .brief-card .dropdown-item i.fa-file-alt { color: #6b7280; }
 .brief-card .dropdown-item i.fa-file-code { color: #10b981; }
 
-/* Estilos para ícones de plataformas */
+/* Platform icon styles */
 .brief-card .platform-icon {
     width: 20px;
     height: 20px;
@@ -147,7 +147,7 @@
 .brief-card .platform-icon.fab.fa-trello { color: #0079BF; }
 .brief-card .platform-icon.fas.fa-brain { color: #000000; }
 
-/* Estilos para o modal de integrações */
+/* Integration modal styles */
 .brief-card .modal-content {
     background: #ffffff;
     color: #1f2937;
@@ -177,7 +177,7 @@
     color: #1f2937 !important;
 }
 
-/* Estilos para o conteúdo do brief */
+/* Brief content styles */
 .brief-card .brief-content {
     padding: 1.5rem;
 }
@@ -274,7 +274,7 @@
                 <div class="action-group relative">
                     <button type="button" class="action-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-file-export"></i>
-                        <span>Exportar</span>
+                        <span>Export</span>
                     </button>
                     <ul class="dropdown-menu hidden">
                         {% if plan_data.export_formats %}
@@ -325,7 +325,7 @@
                 <div class="action-group relative">
                     <button type="button" class="action-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-plug"></i>
-                        <span>Integrações</span>
+                        <span>Integrations</span>
                     </button>
                     <ul class="dropdown-menu hidden">
                         <li>
@@ -364,13 +364,13 @@
                         <div class="modal-dialog relative w-auto pointer-events-none max-w-lg mx-auto">
                             <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white rounded-lg">
                                 <div class="modal-header flex items-center justify-between p-4 border-b border-gray-200 rounded-t-lg">
-                                    <h5 class="modal-title text-lg font-medium text-gray-900">Integrações</h5>
+                                    <h5 class="modal-title text-lg font-medium text-gray-900">Integrations</h5>
                                     <button type="button" class="btn-close text-gray-500 hover:text-gray-700" data-dismiss="modal" aria-label="Close">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                                 <div class="modal-body p-6">
-                                    <p class="text-gray-700">As integrações estarão disponíveis em breve, a partir do plano Premium.</p>
+                                    <p class="text-gray-700">Integrations will be available soon, starting from the Premium plan.</p>
                                 </div>
                             </div>
                         </div>

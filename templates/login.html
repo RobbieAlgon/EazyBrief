@@ -9,12 +9,12 @@
     <div class="max-w-md w-full space-y-8">
         <div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Entrar na sua conta
+                Sign in to your account
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600">
-                Ou
+                Or
                 <a href="{{ url_for('signup') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    criar uma nova conta
+                    create a new account
                 </a>
             </p>
         </div>
@@ -23,7 +23,7 @@
             <div class="mt-6">
                 <button id="googleLoginBtn" onclick="signInWithGoogle()" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                     <img src="{{ url_for('static', filename='images/google.svg') }}" alt="Google" class="h-5 w-5 mr-2">
-                    Entrar com Google
+                    Sign in with Google
                 </button>
             </div>
         </div>
@@ -35,7 +35,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Função para desabilitar todos os botões
+        // Function to disable all buttons
         function disableButtons() {
             const buttons = document.querySelectorAll('button');
             buttons.forEach(button => {
@@ -44,7 +44,7 @@
             });
         }
 
-        // Função para habilitar todos os botões
+        // Function to enable all buttons
         function enableButtons() {
             const buttons = document.querySelectorAll('button');
             buttons.forEach(button => {
@@ -53,7 +53,7 @@
             });
         }
 
-        // Configuração do Firebase
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "{{ config['FIREBASE_API_KEY'] }}",
             authDomain: "{{ config['FIREBASE_AUTH_DOMAIN'] }}",
@@ -63,29 +63,29 @@
             appId: "{{ config['FIREBASE_APP_ID'] }}"
         };
 
-        // Inicializar Firebase
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 
-        // Configurar o provedor do Google
+        // Configure Google provider
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({
             prompt: 'select_account'
         });
 
-        // Função para login com Google
+        // Function for Google login
         window.signInWithGoogle = function() {
-            // Desabilita todos os botões antes de iniciar o login
+            // Disable all buttons before starting login
             disableButtons();
             
             firebase.auth().signInWithPopup(provider)
                 .then((result) => {
-                    // Habilita os botões após o login bem-sucedido
+                    // Enable buttons after successful login
                     enableButtons();
-                    // Obter o token de ID do Firebase
+                    // Get ID token from Firebase
                     return result.user.getIdToken();
                 })
                 .then((idToken) => {
-                    // Enviar o token para o backend
+                    // Send token to backend
                     return fetch('/google/callback', {
                         method: 'POST',
                         headers: {
@@ -101,12 +101,12 @@
                     if (data.success) {
                         window.location.href = '/dashboard';
                     } else {
-                        alert('Erro ao fazer login com Google: ' + data.message);
+                        alert('Error signing in with Google: ' + data.message);
                     }
                 })
                 .catch((error) => {
                     console.error('Erro:', error);
-                    alert('Erro ao fazer login com Google. Por favor, tente novamente.');
+                    alert('Error signing in with Google. Please try again.');
                 });
         };
     });

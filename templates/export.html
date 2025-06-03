@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Exportar e Integrar - {{ plan_data.get('name', 'Gratuito') }} - EazyBrief{% endblock %}
+{% block title %}Export and Integrate - {{ plan_data.get('name', 'Free') }} - EazyBrief{% endblock %}
 
-{% block page_title %}{{ plan_data.get('name', 'Gratuito') }}{% endblock %}
+{% block page_title %}{{ plan_data.get('name', 'Free') }}{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row">
-        <!-- Seção de Exportação -->
+        <!-- Export Section -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3>Exportar Brief</h3>
+                    <h3>Export Brief</h3>
                 </div>
                 <div class="card-body">
                     <form id="exportForm">
                         <div class="mb-3">
-                            <label class="form-label">Formato</label>
+                            <label class="form-label">Format</label>
                             <div class="btn-group w-100" role="group">
                                 {% if 'pdf' in plan_data.export_formats %}
                                     <input type="radio" class="btn-check" name="format" id="pdf" value="pdf" checked>
@@ -38,57 +38,57 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Opções</label>
+                            <label class="form-label">Options</label>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="includeMetadata" name="includeMetadata">
                                 <label class="form-check-label" for="includeMetadata">
-                                    Incluir metadados (data de criação, atualização)
+                                    Include metadata (creation date, last update)
                                 </label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="includeImages" name="includeImages">
                                 <label class="form-check-label" for="includeImages">
-                                    Incluir imagens
+                                    Include images
                                 </label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="includeComments" name="includeComments">
                                 <label class="form-check-label" for="includeComments">
-                                    Incluir comentários
+                                    Include comments
                                 </label>
                             </div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-download me-2"></i>Exportar
+                            <i class="fas fa-download me-2"></i>Export
                         </button>
                     </form>
                 </div>
             </div>
         </div>
         
-        <!-- Seção de Integrações -->
+        <!-- Integration Section -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3>Integrações</h3>
+                    <h3>Integrations</h3>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-3">
                         <button class="btn btn-outline-primary" onclick="connectGoogleDrive()">
-                            <i class="fab fa-google-drive me-2"></i>Conectar com Google Drive
+                            <i class="fab fa-google-drive me-2"></i>Connect to Google Drive
                         </button>
                         
                         <button class="btn btn-outline-primary" onclick="connectTrello()">
-                            <i class="fab fa-trello me-2"></i>Conectar com Trello
+                            <i class="fab fa-trello me-2"></i>Connect to Trello
                         </button>
                         
                         <button class="btn btn-outline-primary" onclick="connectSlack()">
-                            <i class="fab fa-slack me-2"></i>Conectar com Slack
+                            <i class="fab fa-slack me-2"></i>Connect to Slack
                         </button>
                         
                         <button class="btn btn-outline-primary" onclick="connectTeams()">
-                            <i class="fab fa-microsoft me-2"></i>Conectar com Microsoft Teams
+                            <i class="fab fa-microsoft me-2"></i>Connect to Microsoft Teams
                         </button>
                     </div>
                 </div>
@@ -101,7 +101,7 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="feedbackToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
-            <strong class="me-auto">Notificação</strong>
+            <strong class="me-auto">Notification</strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body"></div>
@@ -145,13 +145,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.URL.revokeObjectURL(url);
                 a.remove();
                 
-                showFeedback('Brief exportado com sucesso!', 'success');
+                showFeedback('Brief exported successfully!', 'success');
             } else {
                 const data = await response.json();
-                showFeedback(data.error || 'Erro ao exportar brief', 'error');
+                showFeedback(data.error || 'Error exporting brief', 'error');
             }
         } catch (error) {
-            showFeedback('Erro ao exportar brief: ' + error.message, 'error');
+            showFeedback('Error exporting brief: ' + error.message, 'error');
         }
     });
 });
@@ -176,10 +176,10 @@ async function connectGoogleDrive() {
         if (data.authUrl) {
             window.location.href = data.authUrl;
         } else {
-            showFeedback(data.error || 'Erro ao conectar com Google Drive', 'error');
+            showFeedback(data.error || 'Error connecting to Google Drive', 'error');
         }
     } catch (error) {
-        showFeedback('Erro ao conectar com Google Drive: ' + error.message, 'error');
+        showFeedback('Error connecting to Google Drive: ' + error.message, 'error');
     }
 }
 
@@ -191,10 +191,10 @@ async function connectTrello() {
         if (data.authUrl) {
             window.location.href = data.authUrl;
         } else {
-            showFeedback(data.error || 'Erro ao conectar com Trello', 'error');
+            showFeedback(data.error || 'Error connecting to Trello', 'error');
         }
     } catch (error) {
-        showFeedback('Erro ao conectar com Trello: ' + error.message, 'error');
+        showFeedback('Error connecting to Trello: ' + error.message, 'error');
     }
 }
 
@@ -206,10 +206,10 @@ async function connectSlack() {
         if (data.authUrl) {
             window.location.href = data.authUrl;
         } else {
-            showFeedback(data.error || 'Erro ao conectar com Slack', 'error');
+            showFeedback(data.error || 'Error connecting to Slack', 'error');
         }
     } catch (error) {
-        showFeedback('Erro ao conectar com Slack: ' + error.message, 'error');
+        showFeedback('Error connecting to Slack: ' + error.message, 'error');
     }
 }
 
@@ -221,10 +221,10 @@ async function connectTeams() {
         if (data.authUrl) {
             window.location.href = data.authUrl;
         } else {
-            showFeedback(data.error || 'Erro ao conectar com Microsoft Teams', 'error');
+            showFeedback(data.error || 'Error connecting to Microsoft Teams', 'error');
         }
     } catch (error) {
-        showFeedback('Erro ao conectar com Microsoft Teams: ' + error.message, 'error');
+        showFeedback('Error connecting to Microsoft Teams: ' + error.message, 'error');
     }
 }
 </script>

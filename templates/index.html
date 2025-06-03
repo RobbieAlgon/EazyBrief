@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EazyBrief - Crie Briefings Profissionais em Minutos</title>
+    <title>EazyBrief - Create Professional Briefings in Minutes</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <style>
         .gradient-text {
             background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .hero-gradient {
@@ -30,7 +31,7 @@
         .animate-float {
             animation: float 6s ease-in-out infinite;
         }
-         .fix_t{
+        .fix_t {
             position: absolute;
             z-index: 5000;
             height: 8rem;
@@ -219,8 +220,8 @@
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief Logo" class="fix_t">
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ url_for('login') }}" class="text-gray-600 hover:text-gray-900">Entrar</a>
-                    <a href="{{ url_for('signup') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Começar Grátis</a>
+                    <a href="{{ url_for('login') }}" class="text-gray-600 hover:text-gray-900">Login</a>
+                    <a href="{{ url_for('signup') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Get Started Free</a>
                 </div>
             </div>
         </div>
@@ -231,18 +232,18 @@
         <div class="max-w-7xl mx-auto">
             <div class="text-center">
                 <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-                    Crie Briefings Profissionais em <span class="gradient-text">Minutos</span>
+                    Create Professional Briefings in <span class="gradient-text">Minutes</span>
                 </h1>
                 <p class="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto">
-                    Transforme suas ideias em briefings profissionais com a ajuda da IA. 
-                    Economize tempo e aumente a qualidade dos seus projetos.
+                    Transform your ideas into professional briefings with AI assistance. 
+                    Save time and improve the quality of your projects.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
                     <a href="{{ url_for('signup') }}" class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors">
-                        Começar Agora - É Grátis
+                        Get Started - It's Free
                     </a>
                     <a href="#planos" class="bg-indigo-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition-colors">
-                        Ver Planos
+                        View Plans
                     </a>
                 </div>
             </div>
@@ -253,28 +254,28 @@
     <!-- Features Section -->
     <section class="py-20 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12">Por que escolher o EazyBrief?</h2>
+            <h2 class="text-3xl font-bold text-center mb-12">Why Choose EazyBrief?</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="feature-card bg-white p-6 rounded-xl shadow-lg">
                     <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
                         <i class="fas fa-bolt text-indigo-600 text-xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Rápido e Eficiente</h3>
-                    <p class="text-gray-600">Crie briefings profissionais em minutos, não em horas. Nossa IA faz o trabalho pesado por você.</p>
+                    <h3 class="text-xl font-semibold mb-2">Fast & Efficient</h3>
+                    <p class="text-gray-600">Create professional briefings in minutes, not hours. Our AI does the heavy lifting for you.</p>
                 </div>
                 <div class="feature-card bg-white p-6 rounded-xl shadow-lg">
                     <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
                         <i class="fas fa-magic text-indigo-600 text-xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">IA Avançada</h3>
-                    <p class="text-gray-600">Utilizamos os mais avançados modelos de IA para gerar briefings precisos e profissionais.</p>
+                    <h3 class="text-xl font-semibold mb-2">Advanced AI</h3>
+                    <p class="text-gray-600">We use the most advanced AI models to generate accurate and professional briefings.</p>
                 </div>
                 <div class="feature-card bg-white p-6 rounded-xl shadow-lg">
                     <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
                         <i class="fas fa-file-export text-indigo-600 text-xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Múltiplos Formatos</h3>
-                    <p class="text-gray-600">Exporte seus briefings em PDF, Word, HTML ou texto puro. Escolha o formato que melhor atende suas necessidades.</p>
+                    <h3 class="text-xl font-semibold mb-2">Multiple Formats</h3>
+                    <p class="text-gray-600">Export your briefings in PDF, Word, HTML, or plain text. Choose the format that best suits your needs.</p>
                 </div>
             </div>
         </div>
@@ -283,100 +284,100 @@
     <!-- Plans Section -->
     <section id="planos" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-100">
         <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4">Planos e Preços</h2>
+            <h2 class="text-3xl font-bold text-center mb-4">Plans and Pricing</h2>
             <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-                Escolha o plano ideal para suas necessidades. Todos os planos incluem acesso a todas as funcionalidades básicas.
+                Choose the perfect plan for your needs. All plans include access to all basic features.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Free Plan -->
                 <div class="plan-card bg-white rounded-xl shadow-lg p-8">
-                    <h3 class="text-2xl font-bold mb-4">Grátis</h3>
-                    <p class="text-4xl font-bold mb-6">$0<span class="text-gray-500 text-lg">/mês</span></p>
+                    <h3 class="text-2xl font-bold mb-4">Free</h3>
+                    <p class="text-4xl font-bold mb-6">$0<span class="text-gray-500 text-lg">/month</span></p>
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            3 dias de teste gratis
+                            3-day free trial
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Templates básicos
+                            Basic templates
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Exportação em PDF
+                            PDF Export
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Suporte por email
+                            Email Support
                         </li>
                     </ul>
                     <a href="{{ url_for('signup') }}" class="block text-center bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                        Começar Grátis
+                        Start Free
                     </a>
                 </div>
 
                 <!-- Pro Plan -->
                 <div class="plan-card bg-indigo-600 text-white rounded-xl shadow-lg p-8 transform scale-105">
                     <div class="absolute top-0 right-0 bg-yellow-400 text-indigo-900 px-4 py-1 rounded-bl-lg rounded-tr-lg text-sm font-semibold">
-                        Mais Popular
+                        Most Popular
                     </div>
                     <h3 class="text-2xl font-bold mb-4">Pro</h3>
-                    <p class="text-4xl font-bold mb-6">$9<span class="text-indigo-200 text-lg">/mês</span></p>
+                    <p class="text-4xl font-bold mb-6">$9<span class="text-indigo-200 text-lg">/month</span></p>
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center">
                             <i class="fas fa-check text-yellow-400 mr-2"></i>
-                            50 briefs por mês
+                            50 briefs per month
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-yellow-400 mr-2"></i>
-                            Templates avançados
+                            Advanced templates
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-yellow-400 mr-2"></i>
-                            Exportação em múltiplos formatos
+                            Multiple export formats
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-yellow-400 mr-2"></i>
-                            Suporte prioritário
+                            Priority support
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-yellow-400 mr-2"></i>
-                            Dashboard avançado
+                            Advanced dashboard
                         </li>
                     </ul>
                     <a href="{{ url_for('signup') }}" class="block text-center bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors">
-                        Começar Agora
+                        Get Started Now
                     </a>
                 </div>
 
-                <!-- Premium Plan -->
+                <!-- Business Plan -->
                 <div class="plan-card bg-white rounded-xl shadow-lg p-8">
-                    <h3 class="text-2xl font-bold mb-4">Premium</h3>
-                    <p class="text-4xl font-bold mb-6">$19<span class="text-gray-500 text-lg">/mês</span></p>
+                    <h3 class="text-2xl font-bold mb-4">Business</h3>
+                    <p class="text-4xl font-bold mb-6">$29<span class="text-gray-500 text-lg">/month</span></p>
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Briefs ilimitados
+                            Unlimited briefs
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Templates exclusivos
+                            All templates included
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Exportação em massa
+                            Priority support
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            Suporte VIP
+                            Team collaboration
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-check text-green-500 mr-2"></i>
-                            API access
+                            Custom branding
                         </li>
                     </ul>
                     <a href="{{ url_for('signup') }}" class="block text-center bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
-                        Começar Agora
+                        Contact Sales
                     </a>
                 </div>
             </div>
@@ -386,7 +387,7 @@
     <!-- Testimonials Section -->
     <section class="py-20 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12">O que nossos usuários dizem</h2>
+            <h2 class="text-3xl font-bold text-center mb-12">What Our Users Say</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-white p-6 rounded-xl shadow-lg">
                     <div class="flex items-center mb-4">
@@ -394,11 +395,11 @@
                             <i class="fas fa-user text-indigo-600"></i>
                         </div>
                         <div class="ml-4">
-                            <h4 class="font-semibold">João Silva</h4>
-                            <p class="text-gray-600 text-sm">Diretor de Marketing</p>
+                            <h4 class="font-semibold">John Smith</h4>
+                            <p class="text-gray-600 text-sm">Marketing Director</p>
                         </div>
                     </div>
-                    <p class="text-gray-600">"O EazyBrief revolucionou nossa forma de criar briefings. Agora economizamos horas de trabalho por semana."</p>
+                    <p class="text-gray-600">"EazyBrief has revolutionized how we create briefs. We now save hours of work every week."</p>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-lg">
                     <div class="flex items-center mb-4">
@@ -406,11 +407,11 @@
                             <i class="fas fa-user text-indigo-600"></i>
                         </div>
                         <div class="ml-4">
-                            <h4 class="font-semibold">Maria Santos</h4>
-                            <p class="text-gray-600 text-sm">Gerente de Projetos</p>
+                            <h4 class="font-semibold">Maria Garcia</h4>
+                            <p class="text-gray-600 text-sm">Project Manager</p>
                         </div>
                     </div>
-                    <p class="text-gray-600">"A qualidade dos briefings gerados é impressionante. A IA realmente entende o contexto e gera documentos profissionais."</p>
+                    <p class="text-gray-600">"The quality of the generated briefs is impressive. The AI truly understands the context and produces professional documents."</p>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-lg">
                     <div class="flex items-center mb-4">
@@ -418,11 +419,11 @@
                             <i class="fas fa-user text-indigo-600"></i>
                         </div>
                         <div class="ml-4">
-                            <h4 class="font-semibold">Pedro Costa</h4>
+                            <h4 class="font-semibold">David Kim</h4>
                             <p class="text-gray-600 text-sm">Designer</p>
                         </div>
                     </div>
-                    <p class="text-gray-600">"Os templates são incríveis e a facilidade de exportação em diferentes formatos é um diferencial."</p>
+                    <p class="text-gray-600">"The templates are amazing and the ease of exporting to different formats is a game-changer."</p>
                 </div>
             </div>
         </div>
@@ -431,12 +432,12 @@
     <!-- CTA Section -->
     <section class="py-20 px-4 sm:px-6 lg:px-8 bg-indigo-600">
         <div class="max-w-7xl mx-auto text-center">
-            <h2 class="text-3xl font-bold text-white mb-4">Pronto para transformar seus briefings?</h2>
+            <h2 class="text-3xl font-bold text-white mb-4">Ready to transform your briefings?</h2>
             <p class="text-indigo-100 mb-8 max-w-2xl mx-auto">
-                Comece agora mesmo e experimente o poder da IA na criação de briefings profissionais.
+                Start now and experience the power of AI in creating professional briefings.
             </p>
             <a href="{{ url_for('signup') }}" class="inline-block bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors">
-                Criar Conta Grátis
+                Create Free Account
             </a>
         </div>
     </section>
@@ -447,35 +448,35 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EazyBrief Logo" class="h-12 w-auto mb-4">
-                    <p class="text-sm">Transformando ideias em briefings profissionais com a ajuda da IA.</p>
+                    <p class="text-sm">Transforming ideas into professional briefings with AI assistance.</p>
                 </div>
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Produto</h4>
+                    <h4 class="text-white font-semibold mb-4">Product</h4>
                     <ul class="space-y-2">
-                        <li><a href="#planos" class="hover:text-white">Planos</a></li>
-                        <li><a href="#" class="hover:text-white">Recursos</a></li>
+                        <li><a href="#planos" class="hover:text-white">Plans</a></li>
+                        <li><a href="#" class="hover:text-white">Features</a></li>
                         <li><a href="#" class="hover:text-white">Templates</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Empresa</h4>
+                    <h4 class="text-white font-semibold mb-4">Company</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="hover:text-white">Sobre</a></li>
+                        <li><a href="#" class="hover:text-white">About</a></li>
                         <li><a href="#" class="hover:text-white">Blog</a></li>
-                        <li><a href="#" class="hover:text-white">Contato</a></li>
+                        <li><a href="#" class="hover:text-white">Contact</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="text-white font-semibold mb-4">Legal</h4>
                     <ul class="space-y-2">
-                        <li><a href="{{ url_for('legal') }}" class="hover:text-white">Termos de Uso</a></li>
-                        <li><a href="{{ url_for('legal') }}" class="hover:text-white">Privacidade</a></li>
+                        <li><a href="{{ url_for('legal') }}" class="hover:text-white">Terms of Service</a></li>
+                        <li><a href="{{ url_for('legal') }}" class="hover:text-white">Privacy Policy</a></li>
                         <li><a href="#" class="hover:text-white">Cookies</a></li>
                     </ul>
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center">
-                <p>&copy; {{ year }} EazyBrief. Todos os direitos reservados.</p>
+                <p>&copy; {{ year }} EazyBrief. All rights reserved.</p>
             </div>
         </div>
     </footer>

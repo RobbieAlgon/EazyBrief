@@ -90,14 +90,14 @@ pyre_auth = pyrebase_app.auth()
 # Configuração dos planos e limites
 PLANS = {
     'free': {
-        'name': 'Teste Gratuito',
+        'name': 'Free Trial',
         'price': 0,
-        'trial_days': 3,  # 3 dias de teste
+        'trial_days': 3,  # 3-day trial
         'features': [
-            'Acesso completo por 3 dias',
-            'Templates básicos',
-            'Exportação em PDF',
-            'Suporte por email'
+            'Full access for 3 days',
+            'Basic templates',
+            'PDF export',
+            'Email support'
         ],
         'templates': ['classic'],
         'export_formats': ['pdf', 'docx'],
@@ -107,17 +107,17 @@ PLANS = {
         'name': 'Pro',
         'price': 9,
         'stripe_price_id': os.getenv('STRIPE_PRO_PRICE_ID'),
-        'brief_limit': 50,  # Mantém limite mensal de briefs
+        'brief_limit': 50,  # Monthly brief limit
         'features': [
-            '50 briefs por mês',
-            'Templates avançados',
-            'Exportação em múltiplos formatos',
-            'Suporte prioritário',
-            'Dashboard avançado',
-            'Histórico completo',
-            'Personalização de templates',
-            'Modelos de IA avançados',
-            'Campos extras personalizados'
+            '50 briefs per month',
+            'Advanced templates',
+            'Multiple export formats',
+            'Priority support',
+            'Advanced dashboard',
+            'Complete history',
+            'Template customization',
+            'Advanced AI models',
+            'Custom extra fields'
         ],
         'templates': ['classic', 'visual', 'minimal'],
         'export_formats': ['pdf', 'docx', 'txt', 'html'],
@@ -129,16 +129,16 @@ PLANS = {
         'stripe_price_id': os.getenv('STRIPE_PREMIUM_PRICE_ID'),
         'brief_limit': 50,
         'features': [
-            '50 briefs por mês',
-            'Templates exclusivos',
-            'Exportação em massa',
-            'Suporte VIP',
-            'Dashboard completo',
-            'Backup automático',
+            '50 briefs per month',
+            'Exclusive templates',
+            'Bulk export',
+            'VIP support',
+            'Complete dashboard',
+            'Automatic backup',
             'API access',
-            'Equipes e colaboração',
-            'Personalização avançada',
-            'Todos os modelos de IA'
+            'Team collaboration',
+            'Advanced customization',
+            'All AI models available'
         ],
         'templates': ['classic', 'visual', 'minimal', 'exclusive'],
         'export_formats': ['pdf', 'docx', 'txt', 'html'],

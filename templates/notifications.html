@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Notificações - EazyBrief{% endblock %}
+{% block title %}Notifications - EazyBrief{% endblock %}
 
 {% block page_title %}{% endblock %}
 
@@ -8,9 +8,9 @@
 <div class="max-w-7xl mx-auto">
     <div class="bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Suas Notificações</h2>
+            <h2 class="text-2xl font-bold text-gray-800">Your Notifications</h2>
             <button onclick="markAllAsRead()" class="text-sm text-indigo-600 hover:text-indigo-800">
-                Marcar todas como lidas
+                Mark all as read
             </button>
         </div>
 
@@ -37,7 +37,7 @@
                         </div>
                         {% if not notification.read %}
                         <button onclick="markAsRead('{{ notification.id }}')" class="ml-4 text-sm text-indigo-600 hover:text-indigo-800">
-                            Marcar como lida
+                            Mark as read
                         </button>
                         {% endif %}
                     </div>
@@ -46,7 +46,7 @@
             {% else %}
                 <div class="text-center py-8">
                     <i class="fas fa-bell text-gray-400 text-4xl mb-4"></i>
-                    <p class="text-gray-500">Nenhuma notificação no momento.</p>
+                    <p class="text-gray-500">No notifications at the moment.</p>
                 </div>
             {% endif %}
         </div>

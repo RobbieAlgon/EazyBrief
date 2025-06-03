@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     {% if GA_MEASUREMENT_ID %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
@@ -249,13 +249,13 @@
                     <i class="fas fa-home mr-2"></i>Dashboard
                 </a>
                 <a href="{{ url_for('new_brief') }}" class="{{ nav_link_class }}">
-                    <i class="fas fa-plus-circle mr-2"></i>Novo Brief
+                    <i class="fas fa-plus-circle mr-2"></i>New Brief
                 </a>
                 <a href="{{ url_for('my_briefs') }}" class="{{ nav_link_class }}">
-                    <i class="fas fa-list mr-2"></i>Meus Briefs
+                    <i class="fas fa-list mr-2"></i>My Briefs
                 </a>
                 <a href="{{ url_for('notifications') }}" class="{{ nav_link_class }} relative">
-                    <i class="fas fa-bell mr-2"></i>Notificações
+                    <i class="fas fa-bell mr-2"></i>Notifications
                     {% if notification_count > 0 %}
                     <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
                         {{ notification_count }}
@@ -263,19 +263,16 @@
                     {% endif %}
                 </a>
                 <a href="{{ url_for('plans') }}" class="{{ nav_link_class }}">
-                    <i class="fas fa-usd mr-3"></i>Preços
+                    <i class="fas fa-usd mr-3"></i>Pricing
                 </a>
                 <a href="{{ url_for('support') }}" class="{{ nav_link_class }}">
-                    <i class="fas fa-headset mr-3"></i>Suporte
-                </a>
-                <a href="{{ url_for('status') }}" class="{{ nav_link_class }}">
-                    <i class="fas fa-server mr-3"></i>Status
+                    <i class="fas fa-headset mr-3"></i>Support
                 </a>
                 <a href="{{ url_for('feedback') }}" class="{{ nav_link_class }}">
                     <i class="fas fa-comment-dots mr-3"></i>Feedback
                 </a>
                 <a href="{{ url_for('settings') }}" class="{{ nav_link_class }}">
-                    <i class="fas fa-cog mr-2"></i>Configurações
+                    <i class="fas fa-cog mr-2"></i>Settings
                 </a>
             </nav>
         </aside>

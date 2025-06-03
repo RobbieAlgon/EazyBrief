@@ -10,23 +10,23 @@
         <div class="mb-6">
             <label class="block text-sm font-bold mb-2
                 {% if user_theme == 'dark' %}text-gray-200{% elif user_theme == 'blue' %}text-blue-100{% elif user_theme == 'green' %}text-green-100{% else %}text-gray-700{% endif %}">
-                Tema da Plataforma
+                Platform Theme
             </label>
             <select name="theme" class="form-select w-full rounded-lg px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200
                 {% if user_theme == 'dark' %}bg-gray-900 border-gray-700 text-gray-100
                 {% elif user_theme == 'blue' %}bg-blue-950 border-blue-700 text-blue-100
                 {% elif user_theme == 'green' %}bg-green-950 border-green-700 text-green-100
                 {% else %}bg-gray-100 border-gray-300 text-gray-900{% endif %}">
-                <option value="light" {% if user_theme == 'light' %}selected{% endif %}>Claro</option>
-                <option value="dark" {% if user_theme == 'dark' %}selected{% endif %}>Escuro</option>
-                <option value="blue" {% if user_theme == 'blue' %}selected{% endif %}>Azul</option>
-                <option value="green" {% if user_theme == 'green' %}selected{% endif %}>Verde</option>
+                <option value="light" {% if user_theme == 'light' %}selected{% endif %}>Light</option>
+                <option value="dark" {% if user_theme == 'dark' %}selected{% endif %}>Dark</option>
+                <option value="blue" {% if user_theme == 'blue' %}selected{% endif %}>Blue</option>
+                <option value="green" {% if user_theme == 'green' %}selected{% endif %}>Green</option>
             </select>
         </div>
         <!-- Futuras opções: notificações, etc -->
         <div class="flex justify-end">
             <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-base font-semibold rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">
-                <i class="fas fa-save mr-2"></i>Salvar Preferências
+                <i class="fas fa-save mr-2"></i>Save Preferences
             </button>
         </div>
     </form>
